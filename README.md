@@ -31,6 +31,10 @@ Then run `docker-compose up -d --build` to start the application.
 
 The server will start on `http://localhost:3000` (by default).
 
+To stop the application, run `docker-compose down`.
+
+To access the swagger UI, navigate to `http://localhost:3000/api`.
+
 ---
 
 ## API Endpoints
@@ -83,7 +87,7 @@ Retrieves a feed of vehicle arrivals.
 | `limit`   | Number  | Limit the number of results                   |
 | `isVip`   | Boolean | Filter for VIP vehicles only (`true`/`false`) |
 
-#### cURL Example
+#### cURL Examples
 
 ```bash
 # Get last 10 arrivals
@@ -91,4 +95,12 @@ curl -X GET "http://localhost:3000/api/feed?limit=10"
 
 # Get only VIP arrivals
 curl -X GET "http://localhost:3000/api/feed?isVip=true&limit=20"
+```
+
+### 3. Health Check
+
+Checks the health of the application.
+
+```bash
+curl -X GET "http://localhost:3000/api/health"
 ```
