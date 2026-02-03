@@ -1,0 +1,60 @@
+datasource db {
+    provider = "postgresql"
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+enum MatchType {
+    exact
+    none
+}
+
+model PlateRead {
+    id String @id @default(uuid())
+
+    // Plate data
+    plateRaw        String
+    plateNormalized String
+
+    // Timestamps
+    readAt     DateTime?
+    receivedAt DateTime  @default(now())
+
+    // Camera info
+    cameraId    String
+    cameraKnown Boolean @default(true)
+
+    // Matching result
+    isVip     Boolean
+    matchType MatchType
+    vipId     String?
+
+    // Payload & logs
+    rawPayload     Json
+    processingLogs Json
+    warnings       Json?
+
+    // Relations
+    vip    Vip?    @relation(fields: [vipId], references: [id])
+
+    @@index([plateNormalized])
+    @@index([cameraId])
+    @@index([receivedAt])
+}
+
+model Vip {
+    id              String  @id @default(uuid())
+    plateNormalized String  @unique
+    name            String
+    active          Boolean @default(true)
+
+    plateReads PlateRead[]
+}
+
+model Camera {
+    id       String  @id @default(uuid())
+    name     String?
+    location String?
+}
