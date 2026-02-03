@@ -33,71 +33,17 @@ The server will start on `http://localhost:3000` (by default).
 
 To stop the application, run `docker-compose down`.
 
-To access the swagger UI, navigate to `http://localhost:3000/api`.
-
 ---
+
+## Swagger
+
+Swagger UI is available at:
+
+<http://localhost:3000/api>
 
 ## API Endpoints
 
-### 1. Ingress (Report Plate Read)
-
-Receives vehicle plate data from cameras. protected by an API Key.
-
-- **URL:** `/ingress`
-- **Method:** `POST`
-- **Headers:**
-  - `Content-Type: application/json`
-  - `x-api-key`: Your configured API Key (e.g., `secret-api-key`)
-- **Body:**
-
-| Field       | Type    | Required | Description                                  |
-| :---------- | :------ | :------- | :------------------------------------------- |
-| `plate`     | String  | Yes      | License plate number                         |
-| `timestamp` | ISO8601 | No       | Time of capture (defaults to now if omitted) |
-| `cameraId`  | String  | No       | ID of the camera source                      |
-| `lat`       | Number  | No       | Latitude                                     |
-| `lng`       | Number  | No       | Longitude                                    |
-
-#### cURL Example
-
-```bash
-curl -X POST "http://localhost:3000/api/ingress" \
-     -H "Content-Type: application/json" \
-     -H "x-api-key: secret-api-key" \
-     -d '{
-           "plate": "ABC-123",
-           "timestamp": "2023-10-27T10:00:00Z",
-           "cameraId": "CAM-01",
-           "lat": 30.0444,
-           "lng": 31.2357
-         }'
-```
-
-### 2. Feed (Get Arrivals)
-
-Retrieves a feed of vehicle arrivals.
-
-- **URL:** `/feed`
-- **Method:** `GET`
-- **Query Parameters:**
-
-| Parameter | Type    | Description                                   |
-| :-------- | :------ | :-------------------------------------------- |
-| `since`   | String  | Date/Time string to filter results after      |
-| `limit`   | Number  | Limit the number of results                   |
-| `isVip`   | Boolean | Filter for VIP vehicles only (`true`/`false`) |
-
-#### cURL Examples
-
-```bash
-# Get last 10 arrivals
-curl -X GET "http://localhost:3000/api/feed?limit=10"
-
-# Get only VIP arrivals
-curl -X GET "http://localhost:3000/api/feed?isVip=true&limit=20"
-```
-
-### 3. Health Check
+### Health Check
 
 Checks the health of the application.
 
