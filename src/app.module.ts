@@ -5,8 +5,10 @@ import { FeedModule } from './feed/feed.module';
 import { HealthModule } from './health/health.module';
 import { IngressModule } from './ingress/ingress.module';
 import { PlateReadModule } from './plate-read/plate-read.module';
-import { PrismaModule } from './prisma/prisma.module';
+import { PrismaModule } from './core/prisma/prisma.module';
 import { VipModule } from './vip/vip.module';
+import { APP_GUARD } from '@nestjs/core';
+import { ApiKeyGuard } from './auth/api-key.guard';
 @Module({
   imports: [
     PrismaModule,
@@ -18,6 +20,11 @@ import { VipModule } from './vip/vip.module';
     CoreModule,
     HealthModule,
   ],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ApiKeyGuard,
+    }
+  ],
 })
 export class AppModule { }

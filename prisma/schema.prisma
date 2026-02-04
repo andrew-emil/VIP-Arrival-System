@@ -11,12 +11,23 @@ enum MatchType {
     none
 }
 
+enum CameraSource {
+    webhook
+    manual
+}
+
+enum AuditEventType {
+    received
+    normalized
+    matched
+}
+
 model PlateRead {
     id String @id @default(uuid())
 
     // Plate data
-    plateRaw        String
-    plateNormalized String
+    plateRaw        String //required
+    plateNormalized String //required
 
     // Timestamps
     readAt     DateTime?
@@ -24,7 +35,9 @@ model PlateRead {
 
     // Camera info
     cameraId    String
-    cameraKnown Boolean @default(true)
+    confidence  Float?
+    snapshotUrl String?
+    source      CameraSource
 
     // Matching result
     isVip     Boolean
@@ -32,12 +45,13 @@ model PlateRead {
     vipId     String?
 
     // Payload & logs
-    rawPayload     Json
-    processingLogs Json
-    warnings       Json?
+    rawPayload Json
 
     // Relations
     vip    Vip?    @relation(fields: [vipId], references: [id])
+    camera Camera? @relation(fields: [cameraId], references: [id])
+
+    auditLogs AuditLog[]
 
     @@index([plateNormalized])
     @@index([cameraId])
@@ -57,4 +71,18 @@ model Camera {
     id       String  @id @default(uuid())
     name     String?
     location String?
+
+    plateReads PlateRead[]
+}
+
+model AuditLog {
+    id       String  @id @default(uuid())
+
+    plateReadId String
+    plateRead   PlateRead @relation(fields: [plateReadId], references: [id])
+
+    eventType AuditEventType
+    meta      Json?
+
+    createdAt DateTime @default(now())
 }
