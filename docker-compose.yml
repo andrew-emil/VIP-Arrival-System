@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:18-alpine
+    image: postgres:17-alpine
     container_name: vas-db
     restart: always
     environment:
@@ -51,7 +51,6 @@ services:
       sh -c "
       npx prisma generate &&
       npx prisma migrate dev --name init &&
-      npx prisma db seed &&
       npx prisma migrate deploy &&
       npm run start:dev
       "
