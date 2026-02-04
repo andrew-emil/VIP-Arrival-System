@@ -11,6 +11,6 @@ export class FeedController {
         @Query('limit') limit?: string,
         @Query('isVip') isVip?: string,
     ) {
-        return "getFeed not implemented"
+        return this.feedService.getFeed({ since, limit: limit ?? "50", isVip });
     }
 }

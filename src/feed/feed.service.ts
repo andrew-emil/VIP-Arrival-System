@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../core/prisma/prisma.service';
 
 interface FeedQuery {
@@ -12,10 +12,13 @@ export class FeedService {
     constructor(private readonly prisma: PrismaService) { }
 
     async getFeed(query: FeedQuery) {
-        const limit = query.limit ? Number(query.limit) : 50;
+        let limit = query.limit ? Number(query.limit) : 50;
 
-        if (isNaN(limit) || limit <= 0 || limit > 200) {
-            throw new BadRequestException('Invalid limit (max 200)');
+        if (isNaN(limit) || limit <= 0) {
+            throw new BadRequestException('Invalid limit');
+        }
+        if (limit > 200) {
+            limit = 200;
         }
 
         let sinceDate: Date | undefined;
@@ -43,19 +46,29 @@ export class FeedService {
             orderBy: {
                 receivedAt: 'desc',
             },
-            take: limit + 1,
+            take: limit,
         });
 
-        const hasMore = records.length > limit;
-        const items = hasMore ? records.slice(0, limit) : records;
+        /* -----------------------------
+       5) Response mapping
+       ----------------------------- */
+        const items = records.map((r) => ({
+            id: r.id,
+            plate: r.plateNormalized,
+            timestamp: r.readAt,
+            cameraId: r.cameraId,
+            isVip: r.isVip,
+            confidence: r.confidence,
+            receivedAt: r.receivedAt,
+        }));
 
         const nextSince =
             items.length > 0 ? items[items.length - 1].receivedAt : null;
 
         return {
             items,
-            hasMore,
             nextSince,
         };
+
     }
 }
