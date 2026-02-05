@@ -61,7 +61,7 @@ model PlateRead {
 model Vip {
     id              String  @id @default(uuid())
     plateNormalized String  @unique
-    name            String
+    name            String?
     active          Boolean @default(true)
 
     plateReads PlateRead[]

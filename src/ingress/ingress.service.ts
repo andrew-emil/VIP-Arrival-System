@@ -2,13 +2,21 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { CameraSource, MatchType } from '@prisma/client';
 import { PrismaService } from '../core/prisma/prisma.service';
 import { normalizePlate } from '../core/utils/plate-normalizer';
+import { logInfo } from '../core/logger/app-logger';
 
 
 @Injectable()
 export class IngressService {
     constructor(private readonly prisma: PrismaService) { }
 
-    async handlePlateRead(rawPayload: any) {
+    async handlePlateRead(rawPayload: any, req: any) {
+        const requestId = req?.requestId;
+
+        logInfo({
+            requestId,
+            route: 'POST /ingress/plate-reads',
+            event: 'request_received',
+        });
         /* -----------------------------
        1) Webhook mapping (ORDERED)
        ----------------------------- */
@@ -109,6 +117,14 @@ export class IngressService {
                 rawPayload,
             },
         });
+
+        logInfo({
+            requestId,
+            route: 'POST /ingress/plate-reads',
+            plateReadId: plateRead.id,
+            isVip: plateRead.isVip,
+        });
+
 
         /* -----------------------------
            6) Audit logs (3 events)

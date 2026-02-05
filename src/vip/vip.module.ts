@@ -1,4 +1,9 @@
 import { Module } from '@nestjs/common';
+import { VipController } from './vip.controller';
+import { VipService } from './vip.service';
 
-@Module({})
-export class VipModule {}
+@Module({
+    controllers: [VipController],
+    providers: [VipService]
+})
+export class VipModule { }
