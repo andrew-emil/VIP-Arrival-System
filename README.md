@@ -107,6 +107,9 @@ curl -X GET "http://localhost:3000/feed?limit=10&isVip=true" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
+In .env.example:
+  API_KEY=CHANGE_ME
+
 ### 4. VIP Management
 
 #### Create VIP

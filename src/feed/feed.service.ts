@@ -23,11 +23,11 @@ export class FeedService {
 
         let sinceDate: Date | undefined;
         if (query.since) {
-            const d = new Date(query.since);
-            if (isNaN(d.getTime())) {
+            sinceDate = new Date(query.since);
+            if (isNaN(sinceDate.getTime())) {
                 throw new BadRequestException('Invalid since date');
             }
-            sinceDate = d;
+            console.log(sinceDate)
         }
 
         let isVipFilter: boolean | undefined;
