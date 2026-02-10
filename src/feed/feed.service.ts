@@ -27,7 +27,6 @@ export class FeedService {
             if (isNaN(sinceDate.getTime())) {
                 throw new BadRequestException('Invalid since date');
             }
-            console.log(sinceDate)
         }
 
         let isVipFilter: boolean | undefined;
