@@ -52,6 +52,7 @@ Create a `.env` file in the root directory with the following variables:
 | ---------- | ------------- | --------- | ---------- |
 | `NODE_ENV` | Application environment | `development` | Yes |
 | `PORT` | Server port | `3000` | No (default: 3000) |
+| `ALLOWED_ORIGINS` | Allowed origins for CORS | `http://localhost:3000,http://localhost:8080` | No |
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://postgres:postgres@localhost:5432/vas` | Yes |
 | `API_KEY` | API authentication key | `your-secret-key-here` | Yes |
 | `POSTGRES_USER` | PostgreSQL username (Docker) | `postgres` | Yes |
