@@ -1,5 +1,10 @@
-import { PrismaClient, MatchType, CameraSource, AuditEventType } from '@prisma/client';
+import { PrismaClient, MatchType, CameraSource, AuditEventType, UserRole, CameraRole } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import pino from 'pino';
+
+const logger = pino({
+    transport: { target: 'pino-pretty', options: { colorize: true } }
+});
 
 const adapter = new PrismaPg({
     connectionString: process.env.DATABASE_URL!,
@@ -7,26 +12,63 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter })
 
-
 async function main() {
-    console.log('🌱 Seeding database (Milestone 2)...');
+    logger.info('🌱 Seeding database (Milestone 2 & 3)...');
 
     await prisma.$connect();
 
     /* =======================
-       Cameras (3)
+       Admin User
        ======================= */
-    await prisma.camera.createMany({
-        data: [
-            { id: 'CAM-01', name: 'Main Gate' },
-            { id: 'CAM-02', name: 'Side Gate' },
-            { id: 'CAM-03', name: 'Parking' },
-        ],
-        skipDuplicates: true,
-    });
+    const adminEmail = 'admin@example.com';
+    const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
+    if (!existingAdmin) {
+        await prisma.user.create({
+            data: {
+                name: 'System Admin',
+                email: adminEmail,
+                role: UserRole.Admin,
+                passwordHash: '$2a$10$dummyhash...', // In a real app, hash carefully
+            }
+        });
+        logger.info('Created default Admin user.');
+    }
 
     /* =======================
-       VIPs (10)
+       Sample Event
+       ======================= */
+    const event = await prisma.event.create({
+        data: {
+            name: 'Annual Tech Gala',
+            startTime: new Date(new Date().getTime() - 1000 * 60 * 60 * 2), // 2 hours ago
+            endTime: new Date(new Date().getTime() + 1000 * 60 * 60 * 10), // 10 hours from now
+        }
+    });
+    logger.info(`Created sample Event: ${event.name}`);
+
+    /* =======================
+       Cameras (3)
+       ======================= */
+    const cams = await Promise.all([
+        prisma.camera.upsert({
+            where: { id: 'CAM-01' },
+            create: { id: 'CAM-01', name: 'Main Gate', role: CameraRole.gate, eventId: event.id },
+            update: { role: CameraRole.gate, eventId: event.id }
+        }),
+        prisma.camera.upsert({
+            where: { id: 'CAM-02' },
+            create: { id: 'CAM-02', name: 'Side Gate', role: CameraRole.gate, eventId: event.id },
+            update: { role: CameraRole.gate, eventId: event.id }
+        }),
+        prisma.camera.upsert({
+            where: { id: 'CAM-03' },
+            create: { id: 'CAM-03', name: 'Approach Road', role: CameraRole.approach, eventId: event.id },
+            update: { role: CameraRole.approach, eventId: event.id }
+        })
+    ]);
+
+    /* =======================
+       VIPs (10) & Plates
        ======================= */
     const vips = [
         'ABC123', // will match
@@ -41,30 +83,41 @@ async function main() {
         'VIP008',
     ];
 
-    await prisma.vip.createMany({
-        data: vips.map((plate, i) => ({
-            plateNormalized: plate,
-            name: `VIP ${i + 1}`,
-            active: true,
-        })),
-        skipDuplicates: true,
+    for (let i = 0; i < vips.length; i++) {
+        const plateStr = vips[i];
+
+        await prisma.vip.create({
+            data: {
+                name: `VIP ${i + 1}`,
+                active: true,
+                eventId: event.id,
+                plates: {
+                    connectOrCreate: {
+                        where: { plateNumber: plateStr },
+                        create: { plateNumber: plateStr }
+                    }
+                }
+            }
+        });
+    }
+
+    const vipABC_Plate = await prisma.plate.findUnique({
+        where: { plateNumber: 'ABC123' },
+        include: { vip: true }
     });
 
-    const vipABC = await prisma.vip.findUnique({
-        where: { plateNormalized: 'ABC123' },
-    });
-
-    const vip777 = await prisma.vip.findUnique({
-        where: { plateNormalized: 'VIP777' },
+    const vip777_Plate = await prisma.plate.findUnique({
+        where: { plateNumber: 'VIP777' },
+        include: { vip: true }
     });
 
     /* =======================
-       PlateReads (5)
+       PlateEvents (formerly PlateReads)
        ======================= */
     const now = new Date();
 
     const reads = [
-        // ✅ VIP match #1 (with timestamp)
+        // ✅ VIP match #1
         {
             plateRaw: 'ABC 123',
             plateNormalized: 'ABC123',
@@ -73,10 +126,10 @@ async function main() {
             receivedAt: now,
             isVip: true,
             matchType: MatchType.exact,
-            vipId: vipABC?.id,
+            vipId: vipABC_Plate?.vipId,
+            plateId: vipABC_Plate?.id,
         },
-
-        // ✅ VIP match #2 (no timestamp → readAt = receivedAt)
+        // ✅ VIP match #2
         {
             plateRaw: 'vip-777',
             plateNormalized: 'VIP777',
@@ -85,9 +138,9 @@ async function main() {
             receivedAt: new Date(now.getTime() - 1000 * 60 * 5),
             isVip: true,
             matchType: MatchType.exact,
-            vipId: vip777?.id,
+            vipId: vip777_Plate?.vipId,
+            plateId: vip777_Plate?.id,
         },
-
         // ❌ Non-VIP #1
         {
             plateRaw: 'ZZZ 999',
@@ -98,35 +151,12 @@ async function main() {
             isVip: false,
             matchType: MatchType.none,
             vipId: null,
-        },
-
-        // ❌ Non-VIP #2
-        {
-            plateRaw: 'CAR-101',
-            plateNormalized: 'CAR101',
-            cameraId: 'CAM-01',
-            readAt: new Date(now.getTime() - 1000 * 60 * 20),
-            receivedAt: new Date(now.getTime() - 1000 * 60 * 2),
-            isVip: false,
-            matchType: MatchType.none,
-            vipId: null,
-        },
-
-        // ❌ Non-VIP #3
-        {
-            plateRaw: 'TEST 555',
-            plateNormalized: 'TEST555',
-            cameraId: 'CAM-02',
-            readAt: null,
-            receivedAt: new Date(now.getTime() - 1000 * 60 * 1),
-            isVip: false,
-            matchType: MatchType.none,
-            vipId: null,
+            plateId: null,
         },
     ];
 
     for (const r of reads) {
-        const plateRead = await prisma.plateRead.create({
+        const plateEvt = await prisma.plateEvent.create({
             data: {
                 plateRaw: r.plateRaw,
                 plateNormalized: r.plateNormalized,
@@ -139,6 +169,8 @@ async function main() {
                 isVip: r.isVip,
                 matchType: r.matchType,
                 vipId: r.vipId,
+                plateId: r.plateId,
+                eventId: event.id,
                 rawPayload: { seed: true, plate: r.plateRaw },
             },
         });
@@ -149,27 +181,30 @@ async function main() {
         await prisma.auditLog.createMany({
             data: [
                 {
-                    plateReadId: plateRead.id,
+                    plateEventId: plateEvt.id,
+                    eventId: event.id,
                     eventType: AuditEventType.received,
                 },
                 {
-                    plateReadId: plateRead.id,
+                    plateEventId: plateEvt.id,
+                    eventId: event.id,
                     eventType: AuditEventType.normalized,
                 },
                 {
-                    plateReadId: plateRead.id,
+                    plateEventId: plateEvt.id,
+                    eventId: event.id,
                     eventType: AuditEventType.matched,
                 },
             ],
         });
     }
 
-    console.log('✅ Seed completed successfully');
+    logger.info('✅ Seed completed successfully');
 }
 
 main()
     .catch((e) => {
-        console.error('❌ Seed failed', e);
+        logger.error({ err: e }, '❌ Seed failed');
         process.exit(1);
     })
     .finally(async () => {

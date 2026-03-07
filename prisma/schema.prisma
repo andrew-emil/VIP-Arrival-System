@@ -16,18 +16,87 @@ enum CameraSource {
     manual
 }
 
+enum CameraRole {
+    approach
+    gate
+}
+
 enum AuditEventType {
     received
     normalized
     matched
+    VIP_ADDED
+    APPROACHING
+    ARRIVED
+    CONFIRMED
+    LATE_READ
 }
 
-model PlateRead {
+enum EventStatus {
+    scheduled
+    active
+    finished
+    cancelled
+}
+
+enum VipSessionStatus {
+    pending
+    approaching
+    arrived
+    confirmed
+    cancelled
+}
+
+enum UserRole {
+    Admin
+    Operator
+    Manager
+}
+
+enum Permission {
+    CAN_ADD_VIP
+    // add more permission values here as needed
+}
+
+model Event {
+    id          String      @id @default(uuid())
+    name        String
+    startTime   DateTime
+    endTime     DateTime?
+    status      EventStatus @default(scheduled)
+    eventWindow Int         @default(8) // hours, default 8
+
+    // relations
+    cameras         Camera[]
+    plateEvents     PlateEvent[]
+    vipSessions     VipSession[]
+    vips            Vip[] // optional if you want to associate VIPs directly to events
+    auditLogs       AuditLog[]
+    userPermissions UserPermission[]
+
+    @@index([startTime])
+}
+
+model Plate {
+    id          String  @id @default(uuid())
+    plateNumber String
+    vipId       String?
+    vip         Vip?    @relation(fields: [vipId], references: [id])
+
+    plateEvents PlateEvent[]
+
+    @@unique([plateNumber])
+}
+
+model PlateEvent {
     id String @id @default(uuid())
 
     // Plate data
-    plateRaw        String //required
-    plateNormalized String //required
+    plateRaw        String
+    plateNormalized String
+    idempotencyKey  String?
+    isLate          Boolean?
+    eventId         String?
 
     // Timestamps
     readAt     DateTime?
@@ -40,49 +109,113 @@ model PlateRead {
     source      CameraSource
 
     // Matching result
-    isVip     Boolean
-    matchType MatchType
+    isVip     Boolean   @default(false)
+    matchType MatchType @default(none)
     vipId     String?
+    plateId   String?
 
     // Payload & logs
-    rawPayload Json
+    rawPayload Json?
 
     // Relations
     vip    Vip?    @relation(fields: [vipId], references: [id])
+    plate  Plate?  @relation(fields: [plateId], references: [id])
     camera Camera? @relation(fields: [cameraId], references: [id])
+    event  Event?  @relation(fields: [eventId], references: [id])
 
     auditLogs AuditLog[]
 
-    @@index([plateNormalized])
-    @@index([cameraId])
-    @@index([receivedAt])
+    @@index([plateNormalized], name: "idx_plate_normalized")
+    @@index([cameraId], name: "idx_camera_id")
+    @@index([receivedAt], name: "idx_received_at")
+    @@index([plateId], name: "idx_plate_id")
 }
 
 model Vip {
-    id              String  @id @default(uuid())
-    plateNormalized String  @unique
-    name            String?
-    active          Boolean @default(true)
+    id            String  @id @default(uuid())
+    name          String?
+    active        Boolean @default(true)
+    company       String?
+    protocolLevel Int?
+    notes         String?
+    photoUrl      String?
+    eventId       String?
 
-    plateReads PlateRead[]
+    // relations
+    plates      Plate[]
+    plateEvents PlateEvent[]
+    vipSessions VipSession[]
+    event       Event?       @relation(fields: [eventId], references: [id])
 }
 
 model Camera {
-    id       String  @id @default(uuid())
+    id       String      @id @default(uuid())
     name     String?
     location String?
+    role     CameraRole?
+    lastSeen DateTime?
+    eventId  String?
 
-    plateReads PlateRead[]
+    plateEvents PlateEvent[]
+    event       Event?       @relation(fields: [eventId], references: [id])
+
+    @@index([eventId])
 }
 
 model AuditLog {
-    id       String  @id @default(uuid())
+    id String @id @default(uuid())
 
-    plateReadId String
-    plateRead   PlateRead @relation(fields: [plateReadId], references: [id])
+    plateEventId String?
+    plateEvent   PlateEvent? @relation(fields: [plateEventId], references: [id])
+
+    eventId String?
+    event   Event?  @relation(fields: [eventId], references: [id])
 
     eventType AuditEventType
     meta      Json?
+    createdAt DateTime       @default(now())
 
-    createdAt DateTime @default(now())
+    @@index([createdAt])
+}
+
+model VipSession {
+    id          String           @id @default(uuid())
+    vipId       String
+    eventId     String?
+    status      VipSessionStatus @default(pending)
+    approachAt  DateTime?
+    arrivedAt   DateTime?
+    confirmedAt DateTime?
+    confirmedBy String?
+
+    vip             Vip?   @relation(fields: [vipId], references: [id])
+    event           Event? @relation(fields: [eventId], references: [id])
+    confirmedByUser User?  @relation("UserConfirmedSessions", fields: [confirmedBy], references: [id])
+
+    @@index([vipId])
+    @@index([eventId])
+}
+
+model User {
+    id           String   @id @default(uuid())
+    name         String?
+    email        String   @unique
+    role         UserRole
+    passwordHash String?
+
+    permissions       UserPermission[]
+    confirmedSessions VipSession[]     @relation("UserConfirmedSessions")
+}
+
+model UserPermission {
+    id         String     @id @default(uuid())
+    userId     String
+    permission Permission
+    grantedBy  String?
+    eventId    String?
+
+    user  User?  @relation(fields: [userId], references: [id])
+    event Event? @relation(fields: [eventId], references: [id])
+
+    @@index([userId])
 }

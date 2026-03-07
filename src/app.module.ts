@@ -11,6 +11,8 @@ import { HealthModule } from './health/health.module';
 import { IngressModule } from './ingress/ingress.module';
 import { PlateReadModule } from './plate-read/plate-read.module';
 import { VipModule } from './vip/vip.module';
+import { LoggerModule } from 'nestjs-pino';
+import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 @Module({
   imports: [
     PrismaModule,
@@ -21,6 +23,21 @@ import { VipModule } from './vip/vip.module';
     FeedModule,
     CoreModule,
     HealthModule,
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport: process.env.NODE_ENV !== 'production'
+          ? { target: 'pino-pretty', options: { colorize: true } }
+          : undefined,
+      },
+    }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: seconds(60),
+          limit: 100
+        }
+      ]
+    })
   ],
   providers: [
     {
@@ -31,6 +48,10 @@ import { VipModule } from './vip/vip.module';
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
     },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard
+    }
   ],
 })
 export class AppModule implements NestModule {

@@ -1,7 +1,7 @@
-export function logInfo(payload: Record<string, any>) {
-    console.log(JSON.stringify({
-        level: 'info',
-        timestamp: new Date().toISOString(),
-        ...payload,
-    }));
+import { Logger } from "@nestjs/common";
+
+const defaultLogger = new Logger('AppLogger');
+
+export function logInfo(payload: Record<string, any>, logger: any = defaultLogger) {
+    logger.log(payload);
 }

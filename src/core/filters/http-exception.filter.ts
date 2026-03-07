@@ -5,9 +5,11 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
+import { Logger } from 'nestjs-pino';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
+  constructor(private readonly logger: Logger) { }
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<any>();
@@ -47,16 +49,16 @@ export class HttpExceptionFilter implements ExceptionFilter {
        Server-side logging (500)
        ----------------------------- */
     if (statusCode === 500) {
-      console.error(
-        JSON.stringify({
-          level: 'error',
+      this.logger.error(
+        {
           requestId,
           error: exception instanceof Error ? exception.message : exception,
           stack:
             exception instanceof Error
               ? exception.stack
               : undefined,
-        }),
+        },
+        'Internal Server Error'
       );
     }
 

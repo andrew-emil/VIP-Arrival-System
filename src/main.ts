@@ -5,9 +5,11 @@ import { AppModule } from './app.module';
 import helmet from 'helmet';
 import compression from 'compression';
 import express from 'express';
+import { Logger } from 'nestjs-pino';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.useLogger(app.get(Logger));
   app.enableCors({
     origin: process.env.ALLOWED_ORIGINS?.split(','),
     credentials: true,
@@ -41,4 +43,10 @@ async function bootstrap() {
   await app.listen(process.env.PORT ?? 3000);
 }
 
-bootstrap().catch(console.error);
+bootstrap().catch((err) => {
+  // Use raw pino since NestJS logger is destroyed/failed
+  import('pino').then(({ default: pino }) => {
+    pino().error(err);
+    process.exit(1);
+  });
+});
