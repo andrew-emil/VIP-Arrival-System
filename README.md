@@ -13,7 +13,8 @@ The VIP Arrival System provides core capabilities for managing VIP arrivals:
 1. **Ingress API**: Accept plate read events from ALPR cameras/webhooks (Protected via API Key).
 2. **Auth & User Management**: Session-based authentication and Role-Based Access Control (RBAC).
 3. **VIP Management**: Create and manage VIP license plates for matching.
-4. **Feed API**: Polling-based feed of processed plate reads matched against VIPs.
+4. **Event Management**: Create and track specific events (e.g., summits, conferences) with active windows.
+5. **Feed API**: Polling-based feed of processed plate reads matched against VIPs.
 
 ### Key Features
 
@@ -84,6 +85,22 @@ npm run start:dev
 
 ---
 
+## 🧪 Testing
+
+The project includes pre-configured `.http` files for testing all endpoints directly from your IDE (VS Code with REST Client extension or JetBrains HTTP Client).
+
+You can find them in the `http/` directory:
+
+- `auth.http`: Login, logout, and profile checks.
+- `users.http`: User management and permissions.
+- `events.http`: Event creation and status updates.
+- `vip.http`: VIP registration and listing.
+- `ingress.http`: Plate read ingestion (requires API Key).
+- `feed.http`: Arrival feed polling.
+- `health.http`: System health check.
+
+---
+
 ## 📖 API Documentation (Swagger)
 
 Interactive API documentation is available at: **[http://localhost:3000/docs](http://localhost:3000/docs)**
@@ -136,6 +153,14 @@ Used for ALPR cameras to submit data to `POST /ingress/plate-reads`.
 - `POST /vip`: Register a new VIP.
 - `GET /feed`: Polling feed of arrivals.
 
+### Events
+
+- `POST /events`: Create a new event with scheduling.
+- `GET /events`: List all events.
+- `GET /events/active`: Get currently active events.
+- `PATCH /events/:id`: Update event details or status.
+- `DELETE /events/:id`: Remove an event.
+
 ---
 
 ## 🚫 Explicitly Out of Scope (Phase 1)
@@ -155,5 +180,6 @@ Phase 1 focuses on core functionality. The following are excluded for now:
 
 - ✅ Session-based Auth & RBAC Implemented.
 - ✅ Users Management Service Completed.
+- ✅ Event Management API Completed.
 - ✅ Ingress → Normalization → VIP Matching Flow Working.
 - ✅ Audit Trail & Logging Built-in.

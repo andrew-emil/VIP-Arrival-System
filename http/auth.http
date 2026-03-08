@@ -1,0 +1,21 @@
+@baseUrl = http://localhost:3000
+
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+    "email": "admin@example.com",
+    "password": "password123"
+}
+
+###
+
+# @name me
+GET {{baseUrl}}/auth/me
+# Note: Ensure the session cookie 'sid' is sent (most .http extensions handle this automatically after login)
+
+###
+
+# @name logout
+POST {{baseUrl}}/auth/logout

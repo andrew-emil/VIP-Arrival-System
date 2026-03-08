@@ -1,0 +1,9 @@
+@baseUrl = http://localhost:3000
+
+# @name getFeed
+GET {{baseUrl}}/feed?limit=10&isVip=true
+
+###
+
+# @name getFeedWithSince
+GET {{baseUrl}}/feed?since=2026-03-09T00:00:00Z&limit=20

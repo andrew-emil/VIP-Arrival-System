@@ -1,0 +1,14 @@
+@baseUrl = http://localhost:3000
+@apiKey = CHANGE_ME
+
+# @name plateRead
+POST {{baseUrl}}/ingress/plate-reads
+Content-Type: application/json
+X-API-KEY: {{apiKey}}
+
+{
+    "plate": "ABC 123",
+    "confidence": 0.95,
+    "cameraId": "door-camera-1",
+    "timestamp": "2026-03-09T10:00:00Z"
+}
