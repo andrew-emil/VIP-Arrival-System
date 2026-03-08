@@ -1,21 +1,31 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
-import { ApiKeyGuard } from './auth/api-key.guard';
+import { MiddlewareConsumer, Module, NestModule, ValidationPipe } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
+import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import Joi from 'joi';
+import { LoggerModule } from 'nestjs-pino';
+import { AuthModule } from './auth/auth.module';
+import { SessionGuard } from './auth/guards/session.guard';
+import { SessionMiddleware } from './auth/middlewares/session.middleware';
 import { CameraModule } from './camera/camera.module';
 import { CoreModule } from './core/core.module';
 import { HttpExceptionFilter } from './core/filters/http-exception.filter';
 import { RequestIdMiddleware } from './core/middlewares/request-id.middleware';
 import { PrismaModule } from './core/prisma/prisma.module';
+import { EventsModule } from './events/events.module';
 import { FeedModule } from './feed/feed.module';
 import { HealthModule } from './health/health.module';
 import { IngressModule } from './ingress/ingress.module';
 import { PlateReadModule } from './plate-read/plate-read.module';
+import { UsersModule } from './users/users.module';
 import { VipModule } from './vip/vip.module';
-import { LoggerModule } from 'nestjs-pino';
-import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { apiKeySchema } from './config/key.config';
+import { HashingModule } from './core/hashing/hashing.module';
+
 @Module({
   imports: [
     PrismaModule,
+    AuthModule,
     IngressModule,
     PlateReadModule,
     VipModule,
@@ -23,6 +33,7 @@ import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
     FeedModule,
     CoreModule,
     HealthModule,
+    HashingModule,
     LoggerModule.forRoot({
       pinoHttp: {
         transport: process.env.NODE_ENV !== 'production'
@@ -34,15 +45,24 @@ import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
       throttlers: [
         {
           ttl: seconds(60),
-          limit: 100
-        }
-      ]
-    })
+          limit: 100,
+        },
+      ],
+    }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validationSchema: Joi
+        .object()
+        .concat(apiKeySchema),
+      envFilePath: ['.env'],
+    }),
+    UsersModule,
+    EventsModule,
   ],
   providers: [
     {
       provide: APP_GUARD,
-      useClass: ApiKeyGuard,
+      useClass: SessionGuard,
     },
     {
       provide: APP_FILTER,
@@ -50,14 +70,27 @@ import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
     },
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard
+      useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_PIPE,
+      useValue: new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+        transformOptions: {
+          enableImplicitConversion: true,
+        },
+      })
     }
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(RequestIdMiddleware)
-      .forRoutes("*");
+      // 1. Sessions must be established before any route logic
+      .apply(SessionMiddleware, RequestIdMiddleware)
+      .forRoutes('*');
   }
 }
+

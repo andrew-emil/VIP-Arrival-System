@@ -13,18 +13,26 @@ export class VipService {
         const { plate, name } = createVipDto;
         const plateNormalized = plate.trim().toUpperCase();
 
-        const existingVip = await this.prisma.vip.findUnique({
-            where: { plateNormalized },
+        const existingVip = await this.prisma.vIP.findFirst({
+            where: { plates: { some: { plateNumber: plateNormalized } } },
         });
 
         if (existingVip) {
             throw new ConflictException('VIP already exists');
         }
 
-        return this.prisma.vip.create({
+        const activeEvent = await this.prisma.event.findFirst();
+        if (!activeEvent) {
+            throw new ConflictException('No active event found to assign VIP');
+        }
+
+        return this.prisma.vIP.create({
             data: {
-                plateNormalized,
-                name: name ? name.trim() : null,
+                name: name?.trim() ?? 'Unknown',
+                eventId: activeEvent.id,
+                plates: {
+                    create: { plateNumber: plateNormalized }
+                }
             },
         });
     }
@@ -32,24 +40,27 @@ export class VipService {
     async listVips(plate?: string) {
         const where = plate
             ? {
-                plateNormalized: {
-                    contains: normalizePlate(plate),
+                plates: {
+                    some: {
+                        plateNumber: {
+                            contains: normalizePlate(plate),
+                        }
+                    }
                 },
             }
             : undefined;
 
-        const items = await this.prisma.vip.findMany({
+        const items = await this.prisma.vIP.findMany({
             where,
-            orderBy: { plateNormalized: 'asc' },
+            include: { plates: true },
             take: 200,
         });
 
         return {
             items: items.map((v) => ({
                 id: v.id,
-                plateNormalized: v.plateNormalized,
+                plateNormalized: v.plates.length > 0 ? v.plates[0].plateNumber : 'UNKNOWN',
                 name: v.name,
-                active: v.active,
             })),
         };
     }

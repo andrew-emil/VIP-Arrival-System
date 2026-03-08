@@ -1,9 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { CameraSource, MatchType } from '@prisma/client';
 import { PrismaService } from '../core/prisma/prisma.service';
 import { normalizePlate } from '../core/utils/plate-normalizer';
 import { logInfo } from '../core/logger/app-logger';
-
 
 @Injectable()
 export class IngressService {
@@ -17,9 +15,10 @@ export class IngressService {
             route: 'POST /ingress/plate-reads',
             event: 'request_received',
         });
+
         /* -----------------------------
-       1) Webhook mapping (ORDERED)
-       ----------------------------- */
+           1) Webhook mapping (ORDERED)
+           ----------------------------- */
         const plate =
             rawPayload.plate ??
             rawPayload.plate_text;
@@ -37,13 +36,14 @@ export class IngressService {
             rawPayload.confidence ??
             rawPayload.score;
 
-        const snapshotUrl =
-            rawPayload.snapshotUrl ??
-            rawPayload.image_url;
+        const idempotencyKey =
+            rawPayload.idempotencyKey ??
+            rawPayload.idempotency_key ??
+            `${cameraId}-${Date.now()}`;
 
         /* -----------------------------
-       2) Validation
-       ----------------------------- */
+           2) Validation
+           ----------------------------- */
         if (!plate || typeof plate !== 'string' || plate.trim() === '') {
             throw new BadRequestException({
                 message: 'Validation failed',
@@ -58,7 +58,7 @@ export class IngressService {
             });
         }
 
-        let readAt: Date;
+        let timestamp_date: Date;
         if (timestamp) {
             const parsed = new Date(timestamp);
             if (isNaN(parsed.getTime())) {
@@ -67,9 +67,9 @@ export class IngressService {
                     details: [{ field: 'timestamp', issue: 'invalid' }],
                 });
             }
-            readAt = parsed;
+            timestamp_date = parsed;
         } else {
-            readAt = new Date();
+            timestamp_date = new Date();
         }
 
         /* -----------------------------
@@ -82,72 +82,64 @@ export class IngressService {
         if (!camera)
             throw new NotFoundException('Camera not found');
 
-
         /* -----------------------------
-           4) Normalize + match VIP
+           4) Normalize + match VIP (via Plate)
            ----------------------------- */
         const plateNormalized = normalizePlate(plate);
 
-        const vip = await this.prisma.vip.findFirst({
-            where: {
-                plateNormalized,
-                active: true,
-            },
+        const matchedPlate = await this.prisma.plate.findUnique({
+            where: { plateNumber: plateNormalized },
+            include: { vip: true },
         });
 
-        const isVip = Boolean(vip);
-        const matchType = vip ? MatchType.exact : MatchType.none;
+        const isVip = Boolean(matchedPlate?.vip);
 
         /* -----------------------------
-           5) Persist PlateRead
+           5) Persist PlateEvent
            ----------------------------- */
-        const plateRead = await this.prisma.plateRead.create({
+        const plateEvent = await this.prisma.plateEvent.create({
             data: {
-                plateRaw: plate,
-                plateNormalized,
+                plate: plateNormalized,
                 cameraId,
-                readAt,
-                receivedAt: new Date(),
+                timestamp: timestamp_date,
+                idempotencyKey,
                 confidence,
-                snapshotUrl,
-                source: CameraSource.webhook,
-                isVip,
-                matchType,
-                vipId: vip?.id ?? null,
-                rawPayload,
+                isLate: false,
+                eventId: camera.eventId!,
             },
         });
 
         logInfo({
             requestId,
             route: 'POST /ingress/plate-reads',
-            plateReadId: plateRead.id,
-            isVip: plateRead.isVip,
+            plateEventId: plateEvent.id,
+            isVip,
         });
 
-
         /* -----------------------------
-           6) Audit logs (3 events)
+           6) Audit log
            ----------------------------- */
-        await this.prisma.auditLog.createMany({
-            data: [
-                { plateReadId: plateRead.id, eventType: 'received' },
-                { plateReadId: plateRead.id, eventType: 'normalized' },
-                { plateReadId: plateRead.id, eventType: 'matched' },
-            ],
+        await this.prisma.auditLog.create({
+            data: {
+                action: 'PLATE_READ_RECEIVED',
+                meta: {
+                    plateEventId: plateEvent.id,
+                    plateNormalized,
+                    isVip,
+                },
+            },
         });
 
         /* -----------------------------
            7) Response (201)
            ----------------------------- */
         return {
-            id: plateRead.id,
-            plateRaw: plateRead.plateRaw,
-            plateNormalized: plateRead.plateNormalized,
-            cameraId: plateRead.cameraId,
-            receivedAt: plateRead.receivedAt,
-            isVip: plateRead.isVip,
-            matchType: plateRead.matchType,
+            id: plateEvent.id,
+            plate: plateEvent.plate,
+            cameraId: plateEvent.cameraId,
+            timestamp: plateEvent.timestamp,
+            isVip,
         };
     }
 }
+

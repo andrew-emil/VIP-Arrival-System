@@ -1,221 +1,181 @@
-datasource db {
-    provider = "postgresql"
-}
-
 generator client {
     provider = "prisma-client-js"
 }
 
-enum MatchType {
-    exact
-    none
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
 }
 
-enum CameraSource {
-    webhook
-    manual
+enum Role {
+    ADMIN
+    OPERATOR
+    MANAGER
 }
 
-enum CameraRole {
-    approach
-    gate
-}
-
-enum AuditEventType {
-    received
-    normalized
-    matched
-    VIP_ADDED
+enum SessionStatus {
+    REGISTERED
     APPROACHING
     ARRIVED
     CONFIRMED
-    LATE_READ
+    COMPLETED
 }
 
-enum EventStatus {
-    scheduled
-    active
-    finished
-    cancelled
-}
-
-enum VipSessionStatus {
-    pending
-    approaching
-    arrived
-    confirmed
-    cancelled
-}
-
-enum UserRole {
-    Admin
-    Operator
-    Manager
-}
-
-enum Permission {
-    CAN_ADD_VIP
-    // add more permission values here as needed
+enum CameraRole {
+    APPROACH
+    GATE
 }
 
 model Event {
-    id          String      @id @default(uuid())
-    name        String
-    startTime   DateTime
-    endTime     DateTime?
-    status      EventStatus @default(scheduled)
-    eventWindow Int         @default(8) // hours, default 8
+    id        String   @id @default(uuid())
+    name      String
+    startTime DateTime
+    endTime   DateTime
+    status    String
+    window    Int      @default(480)
 
-    // relations
-    cameras         Camera[]
-    plateEvents     PlateEvent[]
-    vipSessions     VipSession[]
-    vips            Vip[] // optional if you want to associate VIPs directly to events
-    auditLogs       AuditLog[]
-    userPermissions UserPermission[]
+    createdAt DateTime @default(now())
 
-    @@index([startTime])
+    vips       VIP[]
+    cameras    Camera[]
+    sessions   VIPSession[]
+    plateReads PlateEvent[]
+}
+
+model VIP {
+    id            String  @id @default(uuid())
+    name          String
+    company       String?
+    protocolLevel String?
+    notes         String?
+    photoUrl      String?
+
+    eventId String
+    event   Event  @relation(fields: [eventId], references: [id])
+
+    plates   Plate[]
+    sessions VIPSession[]
+
+    createdAt DateTime @default(now())
 }
 
 model Plate {
-    id          String  @id @default(uuid())
+    id          String @id @default(uuid())
     plateNumber String
-    vipId       String?
-    vip         Vip?    @relation(fields: [vipId], references: [id])
 
-    plateEvents PlateEvent[]
+    vipId String
+    vip   VIP    @relation(fields: [vipId], references: [id])
 
     @@unique([plateNumber])
 }
 
+model Camera {
+    id       String  @id @default(uuid())
+    name     String
+    location String?
+
+    role CameraRole
+
+    lastSeen DateTime?
+
+    eventId String
+    event   Event  @relation(fields: [eventId], references: [id])
+
+    plateReads     PlateEvent[]
+    deviceAccounts DeviceAccount[]
+}
+
 model PlateEvent {
+    id             String   @id @default(uuid())
+    plate          String
+    confidence     Float?
+    cameraId       String
+    timestamp      DateTime
+    idempotencyKey String
+    isLate         Boolean  @default(false)
+
+    eventId String
+    event   Event  @relation(fields: [eventId], references: [id])
+
+    camera Camera @relation(fields: [cameraId], references: [id])
+
+    createdAt DateTime @default(now())
+
+    @@unique([idempotencyKey])
+}
+
+model VIPSession {
     id String @id @default(uuid())
 
-    // Plate data
-    plateRaw        String
-    plateNormalized String
-    idempotencyKey  String?
-    isLate          Boolean?
-    eventId         String?
+    vipId String
+    vip   VIP    @relation(fields: [vipId], references: [id])
 
-    // Timestamps
-    readAt     DateTime?
-    receivedAt DateTime  @default(now())
+    eventId String
+    event   Event  @relation(fields: [eventId], references: [id])
 
-    // Camera info
-    cameraId    String
-    confidence  Float?
-    snapshotUrl String?
-    source      CameraSource
+    status SessionStatus
 
-    // Matching result
-    isVip     Boolean   @default(false)
-    matchType MatchType @default(none)
-    vipId     String?
-    plateId   String?
+    approachAt  DateTime?
+    arrivedAt   DateTime?
+    confirmedAt DateTime?
 
-    // Payload & logs
-    rawPayload Json?
+    confirmedBy String?
 
-    // Relations
-    vip    Vip?    @relation(fields: [vipId], references: [id])
-    plate  Plate?  @relation(fields: [plateId], references: [id])
-    camera Camera? @relation(fields: [cameraId], references: [id])
-    event  Event?  @relation(fields: [eventId], references: [id])
-
-    auditLogs AuditLog[]
-
-    @@index([plateNormalized], name: "idx_plate_normalized")
-    @@index([cameraId], name: "idx_camera_id")
-    @@index([receivedAt], name: "idx_received_at")
-    @@index([plateId], name: "idx_plate_id")
+    createdAt DateTime @default(now())
 }
 
-model Vip {
-    id            String  @id @default(uuid())
-    name          String?
-    active        Boolean @default(true)
-    company       String?
-    protocolLevel Int?
-    notes         String?
-    photoUrl      String?
-    eventId       String?
+model User {
+    id           String @id @default(uuid())
+    name         String
+    email        String @unique
+    passwordHash String
+    role         Role
 
-    // relations
-    plates      Plate[]
-    plateEvents PlateEvent[]
-    vipSessions VipSession[]
-    event       Event?       @relation(fields: [eventId], references: [id])
+    isActive Boolean @default(true)
+
+    createdAt DateTime @default(now())
+
+    permissions UserPermission[]
+    auditLogs   AuditLog[]
 }
 
-model Camera {
-    id       String      @id @default(uuid())
-    name     String?
-    location String?
-    role     CameraRole?
-    lastSeen DateTime?
-    eventId  String?
+model UserPermission {
+    id String @id @default(uuid())
 
-    plateEvents PlateEvent[]
-    event       Event?       @relation(fields: [eventId], references: [id])
+    userId String
+    user   User   @relation(fields: [userId], references: [id])
 
-    @@index([eventId])
+    permission String
+    grantedBy  String
+    eventId    String?
+    createdAt  DateTime @default(now())
+
+    @@index([userId])
+}
+
+model DeviceAccount {
+    id       String @id @default(uuid())
+    name     String
+    deviceId String @unique
+
+    cameraId String
+    camera   Camera @relation(fields: [cameraId], references: [id])
+
+    temporaryPassword String?
+
+    isActive Boolean @default(true)
+
+    createdAt DateTime @default(now())
 }
 
 model AuditLog {
     id String @id @default(uuid())
 
-    plateEventId String?
-    plateEvent   PlateEvent? @relation(fields: [plateEventId], references: [id])
+    userId String?
+    user   User?   @relation(fields: [userId], references: [id])
 
-    eventId String?
-    event   Event?  @relation(fields: [eventId], references: [id])
+    action String
+    meta   Json?
 
-    eventType AuditEventType
-    meta      Json?
-    createdAt DateTime       @default(now())
-
-    @@index([createdAt])
-}
-
-model VipSession {
-    id          String           @id @default(uuid())
-    vipId       String
-    eventId     String?
-    status      VipSessionStatus @default(pending)
-    approachAt  DateTime?
-    arrivedAt   DateTime?
-    confirmedAt DateTime?
-    confirmedBy String?
-
-    vip             Vip?   @relation(fields: [vipId], references: [id])
-    event           Event? @relation(fields: [eventId], references: [id])
-    confirmedByUser User?  @relation("UserConfirmedSessions", fields: [confirmedBy], references: [id])
-
-    @@index([vipId])
-    @@index([eventId])
-}
-
-model User {
-    id           String   @id @default(uuid())
-    name         String?
-    email        String   @unique
-    role         UserRole
-    passwordHash String?
-
-    permissions       UserPermission[]
-    confirmedSessions VipSession[]     @relation("UserConfirmedSessions")
-}
-
-model UserPermission {
-    id         String     @id @default(uuid())
-    userId     String
-    permission Permission
-    grantedBy  String?
-    eventId    String?
-
-    user  User?  @relation(fields: [userId], references: [id])
-    event Event? @relation(fields: [eventId], references: [id])
-
-    @@index([userId])
+    createdAt DateTime @default(now())
 }

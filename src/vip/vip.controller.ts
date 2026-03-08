@@ -1,10 +1,9 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { VipService } from './vip.service';
 import { CreateVipDto } from './dto/createVip.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiSecurity } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 
 @ApiTags('VIP')
-@ApiSecurity('api-key')
 @Controller('vip')
 export class VipController {
     constructor(private readonly vipService: VipService) { }

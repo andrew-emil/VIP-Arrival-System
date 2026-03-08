@@ -29,36 +29,31 @@ export class FeedService {
             }
         }
 
-        let isVipFilter: boolean | undefined;
-        if (query.isVip !== undefined) {
-            if (query.isVip !== 'true' && query.isVip !== 'false') {
-                throw new BadRequestException('Invalid isVip value');
-            }
-            isVipFilter = query.isVip === 'true';
-        }
-
-        const records = await this.prisma.plateRead.findMany({
+        const records = await this.prisma.plateEvent.findMany({
             where: {
-                ...(sinceDate && { receivedAt: { gt: sinceDate } }),
-                ...(isVipFilter !== undefined && { isVip: isVipFilter }),
+                ...(sinceDate && { createdAt: { gt: sinceDate } }),
+            },
+            include: {
+                camera: { select: { id: true, name: true, role: true } },
             },
             orderBy: {
-                receivedAt: 'desc',
+                createdAt: 'desc',
             },
             take: limit,
         });
 
         /* -----------------------------
-       5) Response mapping
-       ----------------------------- */
+           Response mapping
+           ----------------------------- */
         const items = records.map((r) => ({
             id: r.id,
-            plate: r.plateNormalized,
-            timestamp: r.readAt,
+            plate: r.plate,
+            timestamp: r.timestamp,
             cameraId: r.cameraId,
-            isVip: r.isVip,
+            camera: r.camera,
             confidence: r.confidence,
-            receivedAt: r.receivedAt,
+            isLate: r.isLate,
+            receivedAt: r.createdAt,
         }));
 
         const nextSince =
@@ -68,6 +63,6 @@ export class FeedService {
             items,
             nextSince,
         };
-
     }
 }
+

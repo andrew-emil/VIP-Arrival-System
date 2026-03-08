@@ -1,0 +1,127 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+  Session,
+} from '@nestjs/common';
+import {
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { Role } from '@prisma/client';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { UsersService } from './users.service';
+import { UseGuards } from '@nestjs/common';
+
+@ApiTags('Users')
+@Controller('users')
+@UseGuards(RolesGuard)
+export class UsersController {
+  constructor(private readonly usersService: UsersService) { }
+
+  // ─── Create user ─────────────────────────────────────────────────────────────
+
+  @Post()
+  @Roles(Role.ADMIN)
+  @HttpCode(201)
+  @ApiOperation({ summary: 'Create a new user (admin only)' })
+  @ApiBody({ type: CreateUserDto })
+  @ApiResponse({ status: 201, description: 'User created successfully' })
+  @ApiResponse({ status: 409, description: 'Email already in use' })
+  createUser(
+    @Body() createUserDto: CreateUserDto,
+    @Session() session: Record<string, any>,
+  ) {
+    const adminName: string = session['userName'] ?? session['userId'];
+    return this.usersService.create(createUserDto, adminName);
+  }
+
+  // ─── List all users ───────────────────────────────────────────────────────────
+
+  @Get()
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Get all users (admin only)' })
+  @ApiResponse({ status: 200, description: 'List of all users' })
+  findAllUsers() {
+    return this.usersService.findAll();
+  }
+
+  // ─── Get single user ──────────────────────────────────────────────────────────
+
+  @Get(':id')
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Get a single user by ID (admin only)' })
+  @ApiParam({ name: 'id', description: 'User UUID' })
+  @ApiResponse({ status: 200, description: 'User found' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  findOneUser(@Param('id') id: string) {
+    return this.usersService.findOne(id);
+  }
+
+  // ─── Update user ──────────────────────────────────────────────────────────────
+
+  @Patch(':id')
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Update user name, role, or active status (admin only)' })
+  @ApiParam({ name: 'id', description: 'User UUID' })
+  @ApiBody({ type: UpdateUserDto })
+  @ApiResponse({ status: 200, description: 'User updated successfully' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(id, updateUserDto);
+  }
+
+  // ─── Assign permissions ───────────────────────────────────────────────────────
+
+  @Post(':id/permissions')
+  @Roles(Role.ADMIN)
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Assign permissions to a user (admin only)' })
+  @ApiParam({ name: 'id', description: 'User UUID' })
+  @ApiBody({ schema: { example: { permissions: ['VIEW_REPORTS', 'MANAGE_VIPS'] } } })
+  @ApiResponse({ status: 200, description: 'Permissions assigned' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  assignPermissions(
+    @Param('id') id: string,
+    @Body('permissions') permissions: string[],
+    @Session() session: Record<string, any>,
+  ) {
+    const adminName: string = session['userName'] ?? session['userId'];
+    return this.usersService.assignPermissions(id, permissions, adminName);
+  }
+
+  // ─── Revoke a specific permission ─────────────────────────────────────────────
+
+  @Delete('permissions/:permissionId')
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Revoke a specific permission (admin only)' })
+  @ApiParam({ name: 'permissionId', description: 'Permission UUID' })
+  @ApiResponse({ status: 200, description: 'Permission revoked' })
+  @ApiResponse({ status: 404, description: 'Permission not found' })
+  revokePermission(@Param('permissionId') permissionId: string) {
+    return this.usersService.revokePermission(permissionId);
+  }
+
+  // ─── Delete user ──────────────────────────────────────────────────────────────
+
+  @Delete(':id')
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Delete a user (admin only)' })
+  @ApiParam({ name: 'id', description: 'User UUID' })
+  @ApiResponse({ status: 200, description: 'User deleted successfully' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  removeUser(@Param('id') id: string) {
+    return this.usersService.remove(id);
+  }
+}

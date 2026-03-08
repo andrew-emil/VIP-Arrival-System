@@ -1,41 +1,29 @@
-import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AppModule } from './app.module';
-import helmet from 'helmet';
 import compression from 'compression';
 import express from 'express';
+import helmet from 'helmet';
 import { Logger } from 'nestjs-pino';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.useLogger(app.get(Logger));
+
   app.enableCors({
     origin: process.env.ALLOWED_ORIGINS?.split(','),
     credentials: true,
   });
-  app.useGlobalPipes(new ValidationPipe({
-    transform: true,
-    whitelist: true,
-    forbidNonWhitelisted: true,
-  }));
   app.use(helmet());
   app.use(compression());
   app.use(express.json({ limit: '1mb' }));
 
+  // ──────────────────────── Swagger ───────────────────────────────────────
   const config = new DocumentBuilder()
     .setTitle('VAS API')
-    .setDescription('VIP Arrival System – Phase 1')
+    .setDescription('VIP Arrival System – Session Auth')
     .setVersion('1.0')
-    .addApiKey(
-      {
-        type: 'apiKey',
-        name: 'x-api-key',
-        in: 'header',
-        description: 'API Key required for protected endpoints',
-      },
-      'api-key', // <-- security name
-    )
+    .addCookieAuth('sid', { type: 'apiKey', in: 'cookie', name: 'sid' }, 'cookie-auth')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
@@ -44,7 +32,6 @@ async function bootstrap() {
 }
 
 bootstrap().catch((err) => {
-  // Use raw pino since NestJS logger is destroyed/failed
   import('pino').then(({ default: pino }) => {
     pino().error(err);
     process.exit(1);

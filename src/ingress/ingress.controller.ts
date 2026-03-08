@@ -1,10 +1,13 @@
-import { Body, Controller, Post, Req } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IngressService } from './ingress.service';
+import { ApiKeyGuard } from 'src/auth/guards/api-key.guard';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @ApiTags('Ingress')
-@ApiSecurity('api-key')
 @Controller('ingress')
+@UseGuards(ApiKeyGuard)
+@Public()
 export class IngressController {
     constructor(private readonly ingressService: IngressService) { }
 
