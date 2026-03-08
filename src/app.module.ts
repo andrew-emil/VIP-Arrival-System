@@ -33,7 +33,6 @@ import { HashingModule } from './core/hashing/hashing.module';
     FeedModule,
     CoreModule,
     HealthModule,
-    HashingModule,
     LoggerModule.forRoot({
       pinoHttp: {
         transport: process.env.NODE_ENV !== 'production'
