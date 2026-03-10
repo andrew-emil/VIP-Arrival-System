@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -60,10 +60,11 @@ export class EventsController {
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(Role.MANAGER)
   @ApiOperation({ summary: 'Delete an event' })
   @ApiParam({ name: 'id', description: 'Event UUID' })
-  @ApiResponse({ status: 200, description: 'Event deleted successfully' })
+  @ApiResponse({ status: 204, description: 'Event deleted successfully' })
   @ApiResponse({ status: 404, description: 'Event not found' })
   remove(@Param('id') id: string) {
     return this.eventsService.remove(id);

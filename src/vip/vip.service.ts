@@ -1,4 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { RealtimeService } from '../realtime/realtime.service';
+import { RealtimeEvent } from '../realtime/realtime.enums';
 import { PrismaService } from 'src/core/prisma/prisma.service';
 import { CreateVipDto } from './dto/createVip.dto';
 import { normalizePlate } from 'src/core/utils/plate-normalizer';
@@ -8,7 +10,10 @@ import { CameraRole, SessionStatus } from '@prisma/client';
 export class VipService {
     private readonly logger = new Logger(VipService.name);
 
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly realtimeService: RealtimeService,
+    ) { }
 
     async create(createVipDto: CreateVipDto) {
         const { plate, name } = createVipDto;
@@ -29,7 +34,7 @@ export class VipService {
             throw new ConflictException('No active event found to assign VIP');
         }
 
-        return this.prisma.vip.create({
+        const vip = await this.prisma.vip.create({
             data: {
                 name: name?.trim() ?? 'Unknown',
                 eventId: activeEvent.id,
@@ -39,6 +44,9 @@ export class VipService {
             },
             include: { plates: true },
         });
+
+        this.realtimeService.emit(RealtimeEvent.VIP_ADDED, { id: vip.id, name: vip.name, plate: plateNormalized });
+        return vip;
     }
 
     async listVips(plate?: string) {
@@ -152,6 +160,7 @@ export class VipService {
             where: { id: session.id },
             data,
         });
+
         this.logger.log(
             `VIPSession ${session.id} ${current} → ${nextState}`
         );
@@ -166,6 +175,16 @@ export class VipService {
                     byCamera: plateEvent.cameraId,
                 },
             },
+        });
+
+        this.realtimeService.emit(nextState === SessionStatus.ARRIVED ? RealtimeEvent.VIP_ARRIVED : RealtimeEvent.VIP_STATUS_CHANGED, {
+            sessionId: session.id,
+            vipId: session.vipId,
+            name: session.vip?.name,
+            plate: plateEvent.plate,
+            from: current,
+            to: nextState,
+            cameraId: plateEvent.cameraId
         });
     }
 
@@ -188,5 +207,7 @@ export class VipService {
         await this.prisma.auditLog.create({
             data: { action: 'VIPSESSION_CONFIRMED', meta: { sessionId, by: confirmedByUserId } },
         });
+
+        this.realtimeService.emit(RealtimeEvent.VIP_CONFIRMED, { sessionId, confirmedBy: confirmedByUserId });
     }
 }

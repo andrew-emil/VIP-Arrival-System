@@ -51,7 +51,7 @@ async function main() {
             name: 'Annual Tech Gala 2026',
             startTime: new Date(new Date().getTime() - 1000 * 60 * 60 * 2), // 2 hours ago
             endTime: new Date(new Date().getTime() + 1000 * 60 * 60 * 10), // 10 hours from now
-            status: 'active',
+            status: 'ACTIVE',
             window: 480
         }
     });

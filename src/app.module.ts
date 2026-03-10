@@ -1,5 +1,6 @@
+import { BullModule } from '@nestjs/bullmq';
 import { MiddlewareConsumer, Module, NestModule, ValidationPipe } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import Joi from 'joi';
@@ -9,6 +10,7 @@ import { SessionGuard } from './auth/guards/session.guard';
 import { SessionMiddleware } from './auth/middlewares/session.middleware';
 import { CameraModule } from './camera/camera.module';
 import { apiKeySchema } from './config/key.config';
+import redisConfig, { redisSchema } from './config/redis.config';
 import { CoreModule } from './core/core.module';
 import { HttpExceptionFilter } from './core/filters/http-exception.filter';
 import { RequestIdMiddleware } from './core/middlewares/request-id.middleware';
@@ -17,6 +19,8 @@ import { FeedModule } from './feed/feed.module';
 import { HealthModule } from './health/health.module';
 import { IdempotencyModule } from './idempotency/idempotency.module';
 import { IngressModule } from './ingress/ingress.module';
+import { QueueModule } from './queue/queue.module';
+import { RealtimeModule } from './realtime/realtime.module';
 import { UsersModule } from './users/users.module';
 import { VipModule } from './vip/vip.module';
 
@@ -48,12 +52,25 @@ import { VipModule } from './vip/vip.module';
       isGlobal: true,
       validationSchema: Joi
         .object()
-        .concat(apiKeySchema),
+        .concat(apiKeySchema)
+        .concat(redisSchema),
       envFilePath: ['.env'],
+      load: [redisConfig],
+    }),
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        connection: {
+          host: configService.getOrThrow<string>('redis.host'),
+          port: configService.getOrThrow<number>('redis.port'),
+        },
+      }),
     }),
     UsersModule,
     EventsModule,
     IdempotencyModule,
+    QueueModule,
+    RealtimeModule,
   ],
   providers: [
     {

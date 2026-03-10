@@ -1,0 +1,18 @@
+@baseUrl = http://localhost:3000
+
+# 1. Generate SSE Ticket
+# @name createTicket
+POST {{baseUrl}}/realtime/ticket
+Content-Type: application/json
+
+###
+
+# 2. Connect to SSE Stream
+# Copy the ticket from the response above and use it in the URL below.
+# Note: In most IDEs, you'll need to open this URL in a browser or use a tool like 'curl'.
+# GET {{baseUrl}}/realtime/stream?ticket={{createTicket.response.body.ticket}}
+
+###
+
+# 3. Trigger an event to see it in the stream
+# Use ingress.http to send a plate read.

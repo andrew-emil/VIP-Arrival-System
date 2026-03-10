@@ -1,4 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { RealtimeService } from 'src/realtime/realtime.service';
+import { RealtimeEvent } from 'src/realtime/realtime.enums';
 import { Prisma } from '@prisma/client';
 import { logInfo } from '../core/logger/app-logger';
 import { PrismaService } from '../core/prisma/prisma.service';
@@ -12,6 +14,7 @@ export class IngressService {
         private readonly prisma: PrismaService,
         private readonly idempotencyService: IdempotencyService,
         private readonly vipService: VipService,
+        private readonly realtimeService: RealtimeService,
     ) { }
 
     async handlePlateRead(rawPayload: any, req: any) {
@@ -125,6 +128,15 @@ export class IngressService {
                 return { status: 'ok', duplicate: true };
             }
             throw err;
+        } finally {
+            if (!isVip) {
+                this.realtimeService.emit(RealtimeEvent.ALERT_CREATED, {
+                    plate: normalized,
+                    cameraId,
+                    timestamp,
+                    confidence
+                });
+            }
         }
     }
 }

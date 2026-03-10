@@ -15,7 +15,9 @@ The VIP Arrival System provides core capabilities for managing VIP arrivals usin
 3. **VIP Management**: Create and manage VIP license plates for matching.
 4. **Event Management**: Create and track specific events (e.g., summits, conferences) with active windows.
 5. **Session Lifecycle (FSM)**: Automated state transitions from `REGISTERED` to `CONFIRMED` based on camera roles.
-6. **Feed API**: Polling-based feed of processed plate reads matched against VIPs.
+6. **Real-Time SSE**: Push-based updates for alerts, arrivals, and system health status.
+7. **Job Queueing**: Async processing of plate reads using BullMQ and Redis for high-burst handling.
+8. **Feed API**: Polling-based fallback feed for processed arrivals.
 
 ### Key Features
 
@@ -39,7 +41,8 @@ The VIP Arrival System provides core capabilities for managing VIP arrivals usin
 - **Database**: PostgreSQL
 - **Session Store**: PostgreSQL (via `connect-pg-simple`)
 - **Logging**: Pino / Nestjs-Pino
-- **Container**: Docker / Docker Compose
+- **Async Queue**: BullMQ (Redis-backed)
+- **Container**: Docker / Docker Compose (includes PostgreSQL and Redis)
 
 ---
 
@@ -55,6 +58,8 @@ Create a `.env` file in the root directory. See `.env.example` for a complete te
 | `API_KEY` | Key for ALPR Ingress API | `your-secret-api-key` | Yes |
 | `CAMERA_WEBHOOK_SECRET` | Token for validating webhooks | `your-webhook-secret` | No |
 | `BCRYPT_ROUNDS` | Password hashing complexity | `12` | No |
+| `REDIS_HOST` | Redis server host | `localhost` | Yes |
+| `REDIS_PORT` | Redis server port | `6379` | Yes |
 | `PORT` | Server port | `3000` | No |
 
 ---
@@ -103,6 +108,7 @@ You can find them in the `http/` directory:
 - `vip.http`: VIP registration and Listing + Manual Confirmation.
 - `ingress.http`: Plate read ingestion (requires API Key).
 - `feed.http`: Arrival feed polling.
+- `realtime.http`: SSE ticket generation and streaming tests.
 - `health.http`: System and Camera health checks.
 
 ---
@@ -130,6 +136,13 @@ All management endpoints (`/users`, `/vip`, `/feed`) require an active session.
 Used for ALPR cameras to submit data to `POST /ingress/plate-reads`.
 
 - Include the `x-api-key` header in your requests.
+
+### 3. SSE Tickets
+
+Real-time streaming requires a short-lived ticket:
+
+1. **Generate**: `POST /realtime/ticket` (Requires session).
+2. **Stream**: `GET /realtime/stream?ticket=<uuid>`.
 
 ---
 
@@ -166,30 +179,8 @@ Used for ALPR cameras to submit data to `POST /ingress/plate-reads`.
 - `GET /events`: List all events.
 - `GET /events/active`: Get currently active events.
 
-### Camera
+### Camera & Real-Time
 
 - `GET /camera/health`: Check status/latency of connected camera units.
-
----
-
-## 🚫 Explicitly Out of Scope (Phase 1)
-
-Phase 1 focuses on core functionality. The following are excluded for now:
-
-- ❌ **Multi-tenancy**: No organization isolation.
-- ❌ **SaaS Billing**: No payment integration.
-- ❌ **Realtime Updates**: Polling-only (no WebSockets/SSE).
-- ❌ **AI/ML Processing**: No machine learning for OCR (external cameras only).
-
----
-
-## ✅ Phase 1 - Status
-
-**Status:** Phase 1 Core Complete 🎉
-
-- ✅ Session-based Auth & RBAC (5 Roles) Implemented.
-- ✅ Automated Finite State Machine (FSM) for VIP Sessions working.
-- ✅ Manual Arrival Confirmation Logic Built.
-- ✅ Camera Unit Monitoring & Health Tracking.
-- ✅ Retroactive Plate Matching for late registrations.
-- ✅ Full Audit Trail & Pino Logging.
+- `POST /realtime/ticket`: Generate a 60s single-use ticket for SSE.
+- `GET /realtime/stream`: SSE endpoint for live events (ALERT_CREATED, VIP_ARRIVED, etc.).
