@@ -1,6 +1,6 @@
 # VIP Arrival System (VAS) – Phase 1
 
-VIP Arrival System is a NestJS-based backend application designed to ingest vehicle plate reads, normalize and match them against a VIP list, and expose a polling feed of arrivals.
+VIP Arrival System is a NestJS-based backend application designed to ingest vehicle plate reads, normalize and match them against a VIP list, and manage the end-to-end arrival lifecycle of VIP visitors.
 
 Phase 1 is a **Lean PoC** focused on correctness, traceability, and clean architecture.
 
@@ -8,23 +8,26 @@ Phase 1 is a **Lean PoC** focused on correctness, traceability, and clean archit
 
 ## 📋 Project Overview
 
-The VIP Arrival System provides core capabilities for managing VIP arrivals:
+The VIP Arrival System provides core capabilities for managing VIP arrivals using a multi-camera setup:
 
 1. **Ingress API**: Accept plate read events from ALPR cameras/webhooks (Protected via API Key).
 2. **Auth & User Management**: Session-based authentication and Role-Based Access Control (RBAC).
 3. **VIP Management**: Create and manage VIP license plates for matching.
 4. **Event Management**: Create and track specific events (e.g., summits, conferences) with active windows.
-5. **Feed API**: Polling-based feed of processed plate reads matched against VIPs.
+5. **Session Lifecycle (FSM)**: Automated state transitions from `REGISTERED` to `CONFIRMED` based on camera roles.
+6. **Feed API**: Polling-based feed of processed plate reads matched against VIPs.
 
 ### Key Features
 
-- **Session-based Authentication**: Secure session management using PostgreSQL as a store.
-- **RBAC**: Role-based access (ADMIN, MANAGER, OPERATOR) for different endpoints.
-- **Webhook-compatible ingestion**: Flexible key mapping for ALPR data.
-- **Plate normalization**: Trim + uppercase + remove spaces/dashes.
-- **Exact VIP matching**: Active VIPs only.
+- **Automated State Machine**: Track VIP status: `REGISTERED` → `APPROACHING` (via Outer Cameras) → `ARRIVED` (via Gate Cameras).
+- **Manual Confirmation**: UI-driven confirmation (`ARRIVED` → `CONFIRMED`) by gate personnel.
+- **Enhanced RBAC**: Granular roles: `ADMIN`, `MANAGER`, `OPERATOR`, `OBSERVER`, and `GATE_GUARD`.
+- **Device Accounts**: Specialized accounts for gate devices (phones/tablets) linked directly to physical cameras.
+- **Camera Management**: Monitor camera health and assign roles (Entrance vs. Approach).
+- **Plate normalization**: Trim + uppercase + remove spaces/dashes for robust matching.
+- **Retroactive Matching**: Automatically match new VIP registrations against the last 60 minutes of unknown plate reads.
 - **Polling feed**: Cursor-based pagination for live updates.
-- **Full audit trail**: Traceability for all major system actions.
+- **Full audit trail**: Traceability for all major system actions and state transitions.
 
 ---
 
@@ -35,6 +38,7 @@ The VIP Arrival System provides core capabilities for managing VIP arrivals:
 - **ORM**: Prisma
 - **Database**: PostgreSQL
 - **Session Store**: PostgreSQL (via `connect-pg-simple`)
+- **Logging**: Pino / Nestjs-Pino
 - **Container**: Docker / Docker Compose
 
 ---
@@ -49,6 +53,8 @@ Create a `.env` file in the root directory. See `.env.example` for a complete te
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://...` | Yes |
 | `SESSION_SECRET` | Secret key for session encryption | `your-secret-session-key` | Yes |
 | `API_KEY` | Key for ALPR Ingress API | `your-secret-api-key` | Yes |
+| `CAMERA_WEBHOOK_SECRET` | Token for validating webhooks | `your-webhook-secret` | No |
+| `BCRYPT_ROUNDS` | Password hashing complexity | `12` | No |
 | `PORT` | Server port | `3000` | No |
 
 ---
@@ -94,10 +100,10 @@ You can find them in the `http/` directory:
 - `auth.http`: Login, logout, and profile checks.
 - `users.http`: User management and permissions.
 - `events.http`: Event creation and status updates.
-- `vip.http`: VIP registration and listing.
+- `vip.http`: VIP registration and Listing + Manual Confirmation.
 - `ingress.http`: Plate read ingestion (requires API Key).
 - `feed.http`: Arrival feed polling.
-- `health.http`: System health check.
+- `health.http`: System and Camera health checks.
 
 ---
 
@@ -141,25 +147,28 @@ Used for ALPR cameras to submit data to `POST /ingress/plate-reads`.
 - `POST /users`: Create a new user.
 - `PATCH /users/:id`: Update user details or status.
 - `DELETE /users/:id`: Delete a user.
-- `POST /users/:id/permissions`: Assign extra granular permissions.
 
 ### Ingress
 
 - `POST /ingress/plate-reads`: Receives plate data from cameras. (Locked via API Key)
+- `POST /ingress/webhook`: Specialized endpoint for third-party ALPR webhooks.
 
 ### VIP & Feed
 
 - `GET /vip`: List registered VIPs.
-- `POST /vip`: Register a new VIP.
-- `GET /feed`: Polling feed of arrivals.
+- `POST /vip`: Register a new VIP (includes retroactive matching).
+- `PATCH /vip/sessions/:id/confirm`: Manually confirm a VIP arrival at the gate.
+- `GET /feed`: Polling feed of arrivals and status transitions.
 
 ### Events
 
 - `POST /events`: Create a new event with scheduling.
 - `GET /events`: List all events.
 - `GET /events/active`: Get currently active events.
-- `PATCH /events/:id`: Update event details or status.
-- `DELETE /events/:id`: Remove an event.
+
+### Camera
+
+- `GET /camera/health`: Check status/latency of connected camera units.
 
 ---
 
@@ -169,7 +178,7 @@ Phase 1 focuses on core functionality. The following are excluded for now:
 
 - ❌ **Multi-tenancy**: No organization isolation.
 - ❌ **SaaS Billing**: No payment integration.
-- ❌ **Realtime Updates**: Polling-only (no WebSockets).
+- ❌ **Realtime Updates**: Polling-only (no WebSockets/SSE).
 - ❌ **AI/ML Processing**: No machine learning for OCR (external cameras only).
 
 ---
@@ -178,8 +187,9 @@ Phase 1 focuses on core functionality. The following are excluded for now:
 
 **Status:** Phase 1 Core Complete 🎉
 
-- ✅ Session-based Auth & RBAC Implemented.
-- ✅ Users Management Service Completed.
-- ✅ Event Management API Completed.
-- ✅ Ingress → Normalization → VIP Matching Flow Working.
-- ✅ Audit Trail & Logging Built-in.
+- ✅ Session-based Auth & RBAC (5 Roles) Implemented.
+- ✅ Automated Finite State Machine (FSM) for VIP Sessions working.
+- ✅ Manual Arrival Confirmation Logic Built.
+- ✅ Camera Unit Monitoring & Health Tracking.
+- ✅ Retroactive Plate Matching for late registrations.
+- ✅ Full Audit Trail & Pino Logging.

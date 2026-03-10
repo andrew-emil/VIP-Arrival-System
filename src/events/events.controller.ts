@@ -1,15 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Role } from '@prisma/client';
 
 @ApiTags('Events')
 @Controller('events')
+@UseGuards(RolesGuard)
 export class EventsController {
   constructor(private readonly eventsService: EventsService) { }
 
   @Post()
+  @Roles(Role.MANAGER, Role.OPERATOR)
   @ApiOperation({ summary: 'Create a new event' })
   @ApiBody({ type: CreateEventDto })
   @ApiResponse({ status: 201, description: 'Event created successfully' })
@@ -18,6 +23,7 @@ export class EventsController {
   }
 
   @Get()
+  @Roles(Role.MANAGER, Role.OPERATOR, Role.OBSERVER)
   @ApiOperation({ summary: 'List all events' })
   @ApiResponse({ status: 200, description: 'List of all events' })
   findAll() {
@@ -25,6 +31,7 @@ export class EventsController {
   }
 
   @Get('active')
+  @Roles(Role.MANAGER, Role.OPERATOR, Role.OBSERVER, Role.GATE_GUARD)
   @ApiOperation({ summary: 'List currently active events' })
   @ApiResponse({ status: 200, description: 'List of active events' })
   findActive() {
@@ -32,6 +39,7 @@ export class EventsController {
   }
 
   @Get(':id')
+  @Roles(Role.MANAGER, Role.OPERATOR, Role.OBSERVER)
   @ApiOperation({ summary: 'Get a single event by ID' })
   @ApiParam({ name: 'id', description: 'Event UUID' })
   @ApiResponse({ status: 200, description: 'Event found' })
@@ -41,6 +49,7 @@ export class EventsController {
   }
 
   @Patch(':id')
+  @Roles(Role.MANAGER, Role.OPERATOR)
   @ApiOperation({ summary: 'Update an event' })
   @ApiParam({ name: 'id', description: 'Event UUID' })
   @ApiBody({ type: UpdateEventDto })
@@ -51,6 +60,7 @@ export class EventsController {
   }
 
   @Delete(':id')
+  @Roles(Role.MANAGER)
   @ApiOperation({ summary: 'Delete an event' })
   @ApiParam({ name: 'id', description: 'Event UUID' })
   @ApiResponse({ status: 200, description: 'Event deleted successfully' })

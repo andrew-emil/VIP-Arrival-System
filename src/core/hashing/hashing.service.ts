@@ -21,11 +21,4 @@ export class HashingService {
     async comparePassword(password: string, hash: string): Promise<boolean> {
         return await bcrypt.compare(password, hash);
     }
-
-    hashToken(token: string) {
-        const secret = this.config.get<string>('RESET_TOKEN_SECRET');
-        if (!secret) throw new Error('RESET_TOKEN_SECRET is not set');
-
-        return crypto.createHmac('sha256', secret).update(token).digest('hex');
-    }
 }

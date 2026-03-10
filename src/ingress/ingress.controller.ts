@@ -18,4 +18,13 @@ export class IngressController {
     handlePlateRead(@Body() body: any, @Req() req: any) {
         return this.ingressService.handlePlateRead(body, req);
     }
+
+    @Post('webhook')
+    async receiveEvent(@Req() req: Request) {
+        const camera = (req as any).camera;
+        const event = req.body;
+        await this.ingressService.handleCameraEvent(camera, event);
+
+        return { status: 'ok' };
+    }
 }

@@ -11,6 +11,8 @@ enum Role {
     ADMIN
     OPERATOR
     MANAGER
+    OBSERVER
+    GATE_GUARD
 }
 
 enum SessionStatus {
@@ -36,13 +38,13 @@ model Event {
 
     createdAt DateTime @default(now())
 
-    vips       VIP[]
+    vips       vip[]
     cameras    Camera[]
-    sessions   VIPSession[]
+    sessions   vipSession[]
     plateReads PlateEvent[]
 }
 
-model VIP {
+model vip {
     id            String  @id @default(uuid())
     name          String
     company       String?
@@ -54,7 +56,7 @@ model VIP {
     event   Event  @relation(fields: [eventId], references: [id])
 
     plates   Plate[]
-    sessions VIPSession[]
+    sessions vipSession[]
 
     createdAt DateTime @default(now())
 }
@@ -64,7 +66,7 @@ model Plate {
     plateNumber String
 
     vipId String
-    vip   VIP    @relation(fields: [vipId], references: [id])
+    vip   vip    @relation(fields: [vipId], references: [id])
 
     @@unique([plateNumber])
 }
@@ -73,6 +75,7 @@ model Camera {
     id       String  @id @default(uuid())
     name     String
     location String?
+    ip       String  @unique
 
     role CameraRole
 
@@ -102,13 +105,16 @@ model PlateEvent {
     createdAt DateTime @default(now())
 
     @@unique([idempotencyKey])
+    @@index([plate])
+    @@index([timestamp])
+    @@index([eventId])
 }
 
-model VIPSession {
+model vipSession {
     id String @id @default(uuid())
 
     vipId String
-    vip   VIP    @relation(fields: [vipId], references: [id])
+    vip   vip    @relation(fields: [vipId], references: [id])
 
     eventId String
     event   Event  @relation(fields: [eventId], references: [id])

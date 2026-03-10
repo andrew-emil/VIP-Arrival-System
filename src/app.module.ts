@@ -8,26 +8,22 @@ import { AuthModule } from './auth/auth.module';
 import { SessionGuard } from './auth/guards/session.guard';
 import { SessionMiddleware } from './auth/middlewares/session.middleware';
 import { CameraModule } from './camera/camera.module';
+import { apiKeySchema } from './config/key.config';
 import { CoreModule } from './core/core.module';
 import { HttpExceptionFilter } from './core/filters/http-exception.filter';
 import { RequestIdMiddleware } from './core/middlewares/request-id.middleware';
-import { PrismaModule } from './core/prisma/prisma.module';
 import { EventsModule } from './events/events.module';
 import { FeedModule } from './feed/feed.module';
 import { HealthModule } from './health/health.module';
+import { IdempotencyModule } from './idempotency/idempotency.module';
 import { IngressModule } from './ingress/ingress.module';
-import { PlateReadModule } from './plate-read/plate-read.module';
 import { UsersModule } from './users/users.module';
 import { VipModule } from './vip/vip.module';
-import { apiKeySchema } from './config/key.config';
-import { HashingModule } from './core/hashing/hashing.module';
 
 @Module({
   imports: [
-    PrismaModule,
     AuthModule,
     IngressModule,
-    PlateReadModule,
     VipModule,
     CameraModule,
     FeedModule,
@@ -57,6 +53,7 @@ import { HashingModule } from './core/hashing/hashing.module';
     }),
     UsersModule,
     EventsModule,
+    IdempotencyModule,
   ],
   providers: [
     {
@@ -81,7 +78,7 @@ import { HashingModule } from './core/hashing/hashing.module';
           enableImplicitConversion: true,
         },
       })
-    }
+    },
   ],
 })
 export class AppModule implements NestModule {

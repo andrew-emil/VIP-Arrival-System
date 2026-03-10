@@ -1,28 +1,31 @@
-import { PrismaClient, Role, CameraRole } from '@prisma/client';
+import { PrismaClient, Role, CameraRole, SessionStatus, vip } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pino from 'pino';
-import * as bcrypt from 'bcrypt';
+import bcrypt from 'bcrypt';
+import pg from 'pg';
 
 const logger = pino({
     transport: { target: 'pino-pretty', options: { colorize: true } }
 });
 
-const adapter = new PrismaPg({
+const pool = new pg.Pool({
     connectionString: process.env.DATABASE_URL!,
 });
+
+const adapter = new PrismaPg(pool);
 
 const prisma = new PrismaClient({ adapter })
 
 async function main() {
-    logger.info('🌱 Seeding database (Milestone 2 & 3)...');
+    logger.info('🌱 Seeding database...');
 
     await prisma.$connect();
 
     /* =======================
        Admin User
        ======================= */
-    const adminEmail = process.env.DEFAULT_ADMIN_EMAIL!;
-    const adminPassword = process.env.DEFAULT_ADMIN_PASSWORD!;
+    const adminEmail = process.env.DEFAULT_ADMIN_EMAIL || 'admin@example.com';
+    const adminPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'Admin@123!';
 
     const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
     if (!existingAdmin) {
@@ -45,10 +48,11 @@ async function main() {
        ======================= */
     const event = await prisma.event.create({
         data: {
-            name: 'Annual Tech Gala',
+            name: 'Annual Tech Gala 2026',
             startTime: new Date(new Date().getTime() - 1000 * 60 * 60 * 2), // 2 hours ago
             endTime: new Date(new Date().getTime() + 1000 * 60 * 60 * 10), // 10 hours from now
             status: 'active',
+            window: 480
         }
     });
     logger.info(`Created sample Event: ${event.name}`);
@@ -56,75 +60,125 @@ async function main() {
     /* =======================
        Cameras (3)
        ======================= */
+    const cam01Id = '11111111-1111-1111-1111-111111111111';
+    const cam02Id = '22222222-2222-2222-2222-222222222222';
+    const cam03Id = '33333333-3333-3333-3333-333333333333';
+
     const cams = await Promise.all([
-        prisma.camera.create({ data: { id: 'CAM-01', name: 'Main Gate', role: CameraRole.GATE, eventId: event.id } }),
-        prisma.camera.create({ data: { id: 'CAM-02', name: 'Side Gate', role: CameraRole.GATE, eventId: event.id } }),
-        prisma.camera.create({ data: { id: 'CAM-03', name: 'Approach Road', role: CameraRole.APPROACH, eventId: event.id } })
+        prisma.camera.create({
+            data: {
+                id: cam01Id,
+                name: 'Main Gate',
+                role: CameraRole.GATE,
+                eventId: event.id,
+                ip: '192.168.1.101',
+                location: 'Main Entrance North'
+            }
+        }),
+        prisma.camera.create({
+            data: {
+                id: cam02Id,
+                name: 'Side Gate',
+                role: CameraRole.GATE,
+                eventId: event.id,
+                ip: '192.168.1.102',
+                location: 'Service Entrance West'
+            }
+        }),
+        prisma.camera.create({
+            data: {
+                id: cam03Id,
+                name: 'Approach Road',
+                role: CameraRole.APPROACH,
+                eventId: event.id,
+                ip: '192.168.1.103',
+                location: 'Highway Approach'
+            }
+        })
     ]);
+    logger.info(`Created ${cams.length} Cameras`);
 
     /* =======================
-       VIPs (10) & Plates
+       VIPs (3) & Plates & Sessions
        ======================= */
-    const vips = [
-        'ABC123', // will match
-        'VIP777', // will match
-        'VIP001',
+    const vipsData = [
+        { name: 'Abdullah Al-Falah', company: 'Saudi Tech', plate: 'ABC123', level: 'Royal' },
+        { name: 'Sarah Johnson', company: 'Global Events', plate: 'VIP777', level: 'Executive' },
+        { name: 'Mohammed Rashid', company: 'Dubai Investments', plate: 'VIP001', level: 'Protocol-1' },
     ];
 
-    for (let i = 0; i < vips.length; i++) {
-        const plateStr = vips[i];
-
-        await prisma.vIP.create({
+    const createdVips: vip[] = [];
+    for (let i = 0; i < vipsData.length; i++) {
+        const data = vipsData[i];
+        const vip = await prisma.vip.create({
             data: {
-                name: `VIP ${i + 1}`,
+                name: data.name,
+                company: data.company,
+                protocolLevel: data.level,
+                notes: `Special guest for ${event.name}`,
                 eventId: event.id,
                 plates: {
-                    create: { plateNumber: plateStr }
+                    create: { plateNumber: data.plate }
+                },
+                sessions: {
+                    create: {
+                        eventId: event.id,
+                        status: SessionStatus.REGISTERED
+                    }
                 }
             }
         });
+        createdVips.push(vip);
     }
+    logger.info(`Created ${createdVips.length} VIPs with associated Plates and Sessions`);
 
     /* =======================
-       PlateEvents
+       PlateEvents (Historic)
        ======================= */
     const now = new Date();
 
     const reads = [
-        // ✅ VIP match #1
+        // ✅ VIP match #1 - Approach road
         {
             plate: 'ABC123',
-            cameraId: 'CAM-01',
-            timestamp: new Date(now.getTime() - 1000 * 60 * 10),
-            idempotencyKey: 'IDEM-1',
+            cameraId: cam03Id,
+            timestamp: new Date(now.getTime() - 1000 * 60 * 30),
+            idempotencyKey: 'IDEM-HIST-1',
+            eventId: event.id,
+            confidence: 0.98
+        },
+        // ✅ VIP match #1 - Arrived at Gate
+        {
+            plate: 'ABC123',
+            cameraId: cam01Id,
+            timestamp: new Date(now.getTime() - 1000 * 60 * 15),
+            idempotencyKey: 'IDEM-HIST-2',
             eventId: event.id,
             confidence: 0.95
         },
-        // ✅ VIP match #2
+        // ✅ VIP match #2 - Approach road
         {
             plate: 'VIP777',
-            cameraId: 'CAM-02',
+            cameraId: cam03Id,
             timestamp: new Date(now.getTime() - 1000 * 60 * 5),
-            idempotencyKey: 'IDEM-2',
+            idempotencyKey: 'IDEM-HIST-3',
             eventId: event.id,
-            confidence: 0.9
+            confidence: 0.92
         },
-        // ❌ Non-VIP #1
+        // ❌ Random car
         {
-            plate: 'ZZZ999',
-            cameraId: 'CAM-03',
-            timestamp: new Date(now.getTime() - 1000 * 60 * 3),
-            idempotencyKey: 'IDEM-3',
+            plate: 'GUEST-1',
+            cameraId: cam01Id,
+            timestamp: new Date(now.getTime() - 1000 * 60 * 2),
+            idempotencyKey: 'IDEM-HIST-4',
             eventId: event.id,
-            confidence: 0.8
+            confidence: 0.85
         },
     ];
 
     for (const r of reads) {
         const plateEvt = await prisma.plateEvent.create({
-            data: {
-                ...r
-            },
+            data: r,
         });
 
         /* =======================
@@ -133,10 +187,11 @@ async function main() {
         await prisma.auditLog.create({
             data: {
                 action: 'PLATE_READ_RECEIVED',
-                meta: { plateEventId: plateEvt.id, eventId: event.id },
+                meta: { plateEventId: plateEvt.id, eventId: event.id, plate: r.plate },
             },
         });
     }
+    logger.info(`Created ${reads.length} PlateEvents and associated AuditLogs`);
 
     logger.info('✅ Seed completed successfully');
 }
@@ -149,3 +204,4 @@ main()
     .finally(async () => {
         await prisma.$disconnect();
     });
+
