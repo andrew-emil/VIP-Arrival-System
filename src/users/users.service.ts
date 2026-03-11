@@ -144,28 +144,15 @@ export class UsersService {
     return createdPermissions;
   }
 
-  async revokePermission(permissionId: string) {
-    const permission = await this.prisma.userPermission.findUnique({
-      where: { id: permissionId },
-    });
-
-    if (!permission) {
-      throw new NotFoundException(
-        `Permission with id "${permissionId}" not found`,
-      );
-    }
-
-    return this.prisma.userPermission.delete({ where: { id: permissionId } });
-  }
-
-  findOneByEmail(email: string) {
-    return this.prisma.user.findUnique({
-      where: { email },
-    });
-  }
-
   async remove(id: string) {
-    await this.findOne(id); // throws 404 if not found
+    const user = await this.findOne(id); // throws 404 if not found
+    if (user.permissions.length > 0) {
+      await this.removePermissions(user.id)
+    }
     return this.prisma.user.delete({ where: { id } });
+  }
+
+  async removePermissions(id: string) {
+    return this.prisma.userPermission.deleteMany({ where: { userId: id } });
   }
 }

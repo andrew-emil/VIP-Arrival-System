@@ -23,6 +23,8 @@ import { QueueModule } from './queue/queue.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { UsersModule } from './users/users.module';
 import { VipModule } from './vip/vip.module';
+import { DeviceModule } from './device/device.module';
+import { SessionsModule } from './sessions/sessions.module';
 
 @Module({
   imports: [
@@ -71,6 +73,8 @@ import { VipModule } from './vip/vip.module';
     IdempotencyModule,
     QueueModule,
     RealtimeModule,
+    DeviceModule,
+    SessionsModule,
   ],
   providers: [
     {

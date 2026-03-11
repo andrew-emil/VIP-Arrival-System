@@ -124,8 +124,10 @@ model vipSession {
     approachAt  DateTime?
     arrivedAt   DateTime?
     confirmedAt DateTime?
+    completedAt DateTime?
 
     confirmedBy String?
+    completedBy String?
 
     createdAt DateTime @default(now())
 }

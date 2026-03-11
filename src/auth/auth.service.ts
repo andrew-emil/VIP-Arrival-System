@@ -38,4 +38,19 @@ export class AuthService {
         if (!user) throw new UnauthorizedException('Session invalid');
         return user;
     }
+
+    async deviceLogin(deviceId: string, password: string) {
+        const device = await this.prisma.deviceAccount.findUnique({
+            where: { deviceId }
+        });
+
+        if (!device || !device.isActive || device.temporaryPassword !== password) {
+            throw new UnauthorizedException("Invalid device ID or password");
+        }
+
+        return {
+            deviceId: device.deviceId,
+            cameraId: device.cameraId
+        };
+    }
 }

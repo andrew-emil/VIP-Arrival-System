@@ -101,18 +101,6 @@ export class UsersController {
     return this.usersService.assignPermissions(id, permissions, adminName);
   }
 
-  // ─── Revoke a specific permission ─────────────────────────────────────────────
-
-  @Delete('permissions/:permissionId')
-  @Roles(Role.ADMIN)
-  @ApiOperation({ summary: 'Revoke a specific permission (admin only)' })
-  @ApiParam({ name: 'permissionId', description: 'Permission UUID' })
-  @ApiResponse({ status: 200, description: 'Permission revoked' })
-  @ApiResponse({ status: 404, description: 'Permission not found' })
-  revokePermission(@Param('permissionId') permissionId: string) {
-    return this.usersService.revokePermission(permissionId);
-  }
-
   // ─── Delete user ──────────────────────────────────────────────────────────────
 
   @Delete(':id')

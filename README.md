@@ -1,8 +1,8 @@
-# VIP Arrival System (VAS) – Phase 1
+# VIP Arrival System (VAS) – MVP
 
 VIP Arrival System is a NestJS-based backend application designed to ingest vehicle plate reads, normalize and match them against a VIP list, and manage the end-to-end arrival lifecycle of VIP visitors.
 
-Phase 1 is a **Lean PoC** focused on correctness, traceability, and clean architecture.
+MVP is a **Lean PoC** focused on correctness, traceability, and clean architecture.
 
 ---
 
@@ -53,14 +53,21 @@ Create a `.env` file in the root directory. See `.env.example` for a complete te
 | Variable | Description | Example | Required |
 | ---------- | ------------- | --------- | ---------- |
 | `NODE_ENV` | Application environment | `development` | Yes |
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://...` | Yes |
-| `SESSION_SECRET` | Secret key for session encryption | `your-secret-session-key` | Yes |
+| `PORT` | Server port | `3000` | No |
+| `ALLOWED_ORIGINS` | List of allowed CORS origins | `http://localhost:3000` | Yes |
+| `DATABASE_URL` | Prisma/PostgreSQL connection string | `postgresql://...` | Yes |
+| `SESSION_SECRET` | Secret key for session encryption | `your-secret-session` | Yes |
 | `API_KEY` | Key for ALPR Ingress API | `your-secret-api-key` | Yes |
 | `CAMERA_WEBHOOK_SECRET` | Token for validating webhooks | `your-webhook-secret` | No |
 | `BCRYPT_ROUNDS` | Password hashing complexity | `12` | No |
 | `REDIS_HOST` | Redis server host | `localhost` | Yes |
 | `REDIS_PORT` | Redis server port | `6379` | Yes |
-| `PORT` | Server port | `3000` | No |
+| `POSTGRES_USER` | DB user for Docker setup | `postgres` | Yes (Docker) |
+| `POSTGRES_PASSWORD` | DB password for Docker setup | `postgres` | Yes (Docker) |
+| `POSTGRES_DB` | DB name for Docker setup | `vas` | Yes (Docker) |
+| `POSTGRES_PORT` | DB port for Docker setup | `5432` | Yes (Docker) |
+| `DEFAULT_ADMIN_EMAIL` | Initial admin email (Seeding) | `admin@example.com` | Yes (Seed) |
+| `DEFAULT_ADMIN_PASSWORD` | Initial admin password (Seeding) | `your_secure_pass` | Yes (Seed) |
 
 ---
 
@@ -69,7 +76,7 @@ Create a `.env` file in the root directory. See `.env.example` for a complete te
 ### 1. Start the database
 
 ```bash
-docker-compose up -d
+docker-compose up -d --build
 ```
 
 ### 2. Install dependencies & Generate Prisma Client
@@ -93,23 +100,6 @@ npx prisma db seed
 ```bash
 npm run start:dev
 ```
-
----
-
-## 🧪 Testing
-
-The project includes pre-configured `.http` files for testing all endpoints directly from your IDE (VS Code with REST Client extension or JetBrains HTTP Client).
-
-You can find them in the `http/` directory:
-
-- `auth.http`: Login, logout, and profile checks.
-- `users.http`: User management and permissions.
-- `events.http`: Event creation and status updates.
-- `vip.http`: VIP registration and Listing + Manual Confirmation.
-- `ingress.http`: Plate read ingestion (requires API Key).
-- `feed.http`: Arrival feed polling.
-- `realtime.http`: SSE ticket generation and streaming tests.
-- `health.http`: System and Camera health checks.
 
 ---
 
@@ -170,8 +160,15 @@ Real-time streaming requires a short-lived ticket:
 
 - `GET /vip`: List registered VIPs.
 - `POST /vip`: Register a new VIP (includes retroactive matching).
-- `PATCH /vip/sessions/:id/confirm`: Manually confirm a VIP arrival at the gate.
 - `GET /feed`: Polling feed of arrivals and status transitions.
+
+### Sessions
+
+- `GET /sessions`: List all VIP sessions.
+- `GET /sessions/arrived`: List sessions with status `ARRIVED` or `APPROACHING`.
+- `GET /sessions/:id`: Get session details.
+- `PATCH /sessions/:id/confirm`: Manually confirm a VIP arrival at the gate.
+- `PATCH /sessions/:id/complete`: Manually complete a VIP session.
 
 ### Events
 
@@ -179,8 +176,18 @@ Real-time streaming requires a short-lived ticket:
 - `GET /events`: List all events.
 - `GET /events/active`: Get currently active events.
 
-### Camera & Real-Time
+### Device Management (Admin Only)
 
+- `GET /device`: List all device accounts.
+- `POST /device`: Create a new device account for a terminal/tablet.
+- `GET /device/:id`: Get specific device details.
+- `PATCH /device/:id`: Update device metadata.
+- `PATCH /device/:id/deactivate`: Deactivate a device account.
+- `PATCH /device/:id/regenerate-password`: Regenerate the temporary password for a device.
+
+### Camera, Real-Time & Health
+
+- `GET /health`: System health status and DB connectivity check.
 - `GET /camera/health`: Check status/latency of connected camera units.
 - `POST /realtime/ticket`: Generate a 60s single-use ticket for SSE.
 - `GET /realtime/stream`: SSE endpoint for live events (ALERT_CREATED, VIP_ARRIVED, etc.).

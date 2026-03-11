@@ -14,6 +14,7 @@ import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { Public } from './decorators/public.decorator';
+import { DeviceLoginDto } from './dto/device-login.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -49,6 +50,15 @@ export class AuthController {
             });
         });
     }
+
+    @Post('device/login')
+    @ApiOperation({ summary: 'Login for gate devices (tablets/phones)' })
+      @ApiBody({ type: DeviceLoginDto })
+      @ApiResponse({ status: 200, description: 'Login successful, returns device and camera identifiers' })
+      @ApiResponse({ status: 401, description: 'Invalid device ID or password' })
+      async deviceLogin(@Body() loginDto: DeviceLoginDto) {
+        return this.authService.deviceLogin(loginDto.deviceId, loginDto.password);
+      }
 
     @Get('me')
     @ApiOperation({ summary: 'Get current session user profile' })

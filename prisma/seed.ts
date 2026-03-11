@@ -1,8 +1,9 @@
-import { PrismaClient, Role, CameraRole, SessionStatus, vip } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-import pino from 'pino';
+import { CameraRole, PrismaClient, Role, SessionStatus, vip } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import { randomUUID } from 'crypto';
 import pg from 'pg';
+import pino from 'pino';
 
 const logger = pino({
     transport: { target: 'pino-pretty', options: { colorize: true } }
@@ -60,9 +61,9 @@ async function main() {
     /* =======================
        Cameras (3)
        ======================= */
-    const cam01Id = '11111111-1111-1111-1111-111111111111';
-    const cam02Id = '22222222-2222-2222-2222-222222222222';
-    const cam03Id = '33333333-3333-3333-3333-333333333333';
+    const cam01Id = randomUUID();
+    const cam02Id = randomUUID();
+    const cam03Id = randomUUID();
 
     const cams = await Promise.all([
         prisma.camera.create({

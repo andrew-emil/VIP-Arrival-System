@@ -1,10 +1,10 @@
-import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { RealtimeService } from '../realtime/realtime.service';
-import { RealtimeEvent } from '../realtime/realtime.enums';
-import { PrismaService } from 'src/core/prisma/prisma.service';
-import { CreateVipDto } from './dto/createVip.dto';
-import { normalizePlate } from 'src/core/utils/plate-normalizer';
+import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common';
 import { CameraRole, SessionStatus } from '@prisma/client';
+import { PrismaService } from 'src/core/prisma/prisma.service';
+import { normalizePlate } from 'src/core/utils/plate-normalizer';
+import { RealtimeEvent } from '../realtime/realtime.enums';
+import { RealtimeService } from '../realtime/realtime.service';
+import { CreateVipDto } from './dto/createVip.dto';
 
 @Injectable()
 export class VipService {
@@ -186,28 +186,5 @@ export class VipService {
             to: nextState,
             cameraId: plateEvent.cameraId
         });
-    }
-
-    /**
-   * Called by staff UI to confirm ARRIVED -> CONFIRMED
-   */
-    async confirmSession(sessionId: string, confirmedByUserId: string) {
-        const s = await this.prisma.vipSession.findUnique({ where: { id: sessionId } });
-        if (!s) throw new NotFoundException('Session not found');
-
-        if (s.status === SessionStatus.COMPLETED || s.status === SessionStatus.CONFIRMED) {
-            throw new ConflictException(`Session is already ${s.status}, cannot confirm again`);
-        }
-
-        await this.prisma.vipSession.update({
-            where: { id: sessionId },
-            data: { status: SessionStatus.CONFIRMED, confirmedAt: new Date(), confirmedBy: confirmedByUserId },
-        });
-
-        await this.prisma.auditLog.create({
-            data: { action: 'VIPSESSION_CONFIRMED', meta: { sessionId, by: confirmedByUserId } },
-        });
-
-        this.realtimeService.emit(RealtimeEvent.VIP_CONFIRMED, { sessionId, confirmedBy: confirmedByUserId });
     }
 }

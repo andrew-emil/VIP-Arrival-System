@@ -56,14 +56,6 @@ export class VipController {
     findAll(@Query('plate') plate?: string) {
         return this.vipService.listVips(plate);
     }
-
-    @Patch('/sessions/:id/confirm')
-    @Roles(Role.MANAGER, Role.OPERATOR, Role.GATE_GUARD)
-    @ApiOperation({ summary: 'Confirm a VIP session manually' })
-    @ApiResponse({ status: 200, description: 'The VIP session has been successfully confirmed.' })
-    confirmSession(@Param('id') id: string, @Req() req: any) {
-        return this.vipService.confirmSession(id, req.user.id);
-    }
 }
 
 
