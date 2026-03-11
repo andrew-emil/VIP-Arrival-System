@@ -1,0 +1,45 @@
+
+import { 
+  LayoutDashboard, Users, Camera, History, FileText, Settings, 
+  ShieldCheck, Map, DoorOpen, Bell, Languages, Globe, Volume2, 
+  Activity, Lock, UserPlus, Trash2, Edit3, ChevronRight, 
+  Search, LogOut, Moon, Sun, Zap, Info, AlertTriangle, CheckCircle2,
+  Maximize2, Plus, VolumeX, LayoutGrid, ShieldAlert, Mail, Smartphone
+} from 'lucide-react';
+
+export const VAS_ICONS = {
+  dashboard: LayoutDashboard,
+  vips: Users,
+  cameras: Camera,
+  history: History,
+  docs: FileText,
+  settings: Settings,
+  security: ShieldCheck,
+  users: UserPlus,
+  zones: Map,
+  gates: DoorOpen,
+  notifications: Bell,
+  language: Languages,
+  timezone: Globe,
+  sound: Volume2,
+  soundOff: VolumeX,
+  activity: Activity,
+  lock: Lock,
+  trash: Trash2,
+  edit: Edit3,
+  arrow: ChevronRight,
+  search: Search,
+  logout: LogOut,
+  moon: Moon,
+  sun: Sun,
+  vipZap: Zap,
+  info: Info,
+  warning: AlertTriangle,
+  success: CheckCircle2,
+  expand: Maximize2,
+  plus: Plus,
+  density: LayoutGrid,
+  shield: ShieldAlert,
+  mail: Mail,
+  device: Smartphone
+};

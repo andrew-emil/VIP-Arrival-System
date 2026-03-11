@@ -1,0 +1,5 @@
+{
+  "name": "VAS – VIP Arrival System",
+  "description": "A high-performance SaaS dashboard for real-time VIP arrival detection using License Plate Recognition (LPR) technology.",
+  "requestFramePermissions": []
+}
