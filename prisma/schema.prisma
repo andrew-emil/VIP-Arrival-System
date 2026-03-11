@@ -21,6 +21,7 @@ enum SessionStatus {
     ARRIVED
     CONFIRMED
     COMPLETED
+    REJECTED
 }
 
 enum CameraRole {
@@ -125,9 +126,11 @@ model vipSession {
     arrivedAt   DateTime?
     confirmedAt DateTime?
     completedAt DateTime?
+    rejectedAt  DateTime?
 
     confirmedBy String?
     completedBy String?
+    rejectedBy  String?
 
     createdAt DateTime @default(now())
 }

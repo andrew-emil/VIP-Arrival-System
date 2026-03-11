@@ -6,6 +6,7 @@ export enum RealtimeEvent {
     VIP_COMPLETED = 'VIP_COMPLETED',
     CAMERA_HEALTH = 'CAMERA_HEALTH',
     VIP_STATUS_CHANGED = 'VIP_STATUS_CHANGED',
+    VIP_REJECTED = 'VIP_REJECTED',
 }
 
 export enum RealtimeConfig {

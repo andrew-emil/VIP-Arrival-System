@@ -96,4 +96,44 @@ export class SessionsService {
 
     return updatedSession;
   }
+
+  async rejectSession(sessionId: string, rejectedByUserId: string) {
+    const s = await this.getSessionById(sessionId);
+
+    if (
+      s.status === SessionStatus.COMPLETED ||
+      s.status === SessionStatus.CONFIRMED ||
+      s.status === SessionStatus.REJECTED
+    ) {
+      throw new ConflictException(`Session already ${s.status}`);
+    }
+
+    const updatedSession = await this.prisma.$transaction(async (tx) => {
+
+      const updated = await tx.vipSession.update({
+        where: { id: sessionId },
+        data: {
+          status: SessionStatus.REJECTED,
+          rejectedAt: new Date(),
+          rejectedBy: rejectedByUserId
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          action: 'SESSION_REJECTED',
+          meta: { sessionId, by: rejectedByUserId },
+        },
+      });
+
+      return updated;
+    });
+
+    this.realtimeService.emit(
+      RealtimeEvent.VIP_REJECTED,
+      { sessionId, rejectedBy: rejectedByUserId }
+    );
+
+    return updatedSession;
+  }
 }

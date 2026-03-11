@@ -58,4 +58,12 @@ export class SessionsController {
   completeSession(@Param('id') id: string, @Req() req: any) {
     return this.sessionsService.completeSession(id, req.user.id);
   }
+
+  @Patch('/:id/reject')
+  @Roles(Role.MANAGER, Role.ADMIN, Role.GATE_GUARD, Role.OPERATOR)
+  @ApiOperation({ summary: 'Reject a VIP session at the gate' })
+  @ApiResponse({ status: 200, description: 'The VIP session has been rejected.' })
+  rejectSession(@Param('id') id: string, @Req() req: any) {
+    return this.sessionsService.rejectSession(id, req.user.id);
+  }
 }
