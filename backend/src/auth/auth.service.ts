@@ -12,13 +12,13 @@ export class AuthService {
             where: { email: dto.email },
         });
 
-        if (!user || !user.passwordHash) {
-            throw new UnauthorizedException('Invalid credentials');
+        if (!user || !user.passwordHash || !user.isActive) {
+            throw new UnauthorizedException('Invalid Email or password');
         }
 
         const isMatch = await bcrypt.compare(dto.password, user.passwordHash);
         if (!isMatch) {
-            throw new UnauthorizedException('Invalid credentials');
+            throw new UnauthorizedException('Invalid Email or password');
         }
 
         return {

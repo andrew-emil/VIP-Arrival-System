@@ -1,78 +1,149 @@
-
-import React from 'react';
-import { AppSettings } from '../types';
+import React, { useEffect, useState } from 'react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { VAS_ICONS } from '../config/icons';
+import { getCurrentUser, logout } from '../services/auth';
+import { Role } from '../types/auth';
+import { IUser } from '../types/user';
 
-interface LayoutProps {
-  children: React.ReactNode;
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-  settings: AppSettings;
-  unreadNotifsCount: number;
-  onBellClick: () => void;
-}
+export const Layout: React.FC = () => {
+  const { t, i18n } = useTranslation();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [user, setUser] = useState<IUser | null>(null);
+  const language = i18n.language;
+  const isRtl = language === 'ar';
 
-export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, settings, unreadNotifsCount, onBellClick }) => {
-  const language = settings.language;
-  
+  useEffect(() => {
+    async function loadUser() {
+      const u = await getCurrentUser();
+      if (!u) {
+        navigate('/login');
+        return;
+      }
+      setUser(u);
+    }
+    loadUser();
+  }, [navigate]);
+
+  const handleLogout = async () => {
+    await logout();
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
+
+  if (!user) return null;
+
   const groups = [
     {
-      titleAr: 'العمليات', titleEn: 'Operations',
+      title: t('nav_operations', 'Operations'),
       items: [
-        { id: 'dashboard', labelAr: 'لوحة العمليات', labelEn: 'Operations Room', icon: 'dashboard' },
-        { id: 'history', labelAr: 'الخط الزمني', labelEn: 'Timeline', icon: 'history' },
-        { id: 'cameras', labelAr: 'الكاميرات', labelEn: 'Cameras', icon: 'cameras' },
+        { id: 'dashboard', label: t('nav_dashboard', 'Operations Dashboard'), path: '/dashboard', icon: 'dashboard', roles: [Role.MANAGER, Role.OPERATOR] },
+        { id: 'admin', label: t('nav_admin', 'Admin Panel'), path: '/admin', icon: 'security', roles: [Role.ADMIN] },
+        { id: 'monitor', label: t('nav_monitor', 'Monitor'), path: '/monitor', icon: 'activity', roles: [Role.MANAGER, Role.OBSERVER] },
+        { id: 'timeline', label: t('nav_timeline', 'Timeline'), path: '/sessions', icon: 'history', roles: [Role.ADMIN, Role.MANAGER, Role.OPERATOR] },
+        { id: 'cameras', label: t('nav_cameras', 'Cameras'), path: '/cameras', icon: 'cameras', roles: [Role.ADMIN, Role.MANAGER, Role.OPERATOR] },
       ]
     },
     {
-      titleAr: 'الإدارة', titleEn: 'Management',
+      title: t('nav_management', 'Management'),
       items: [
-        { id: 'vips', labelAr: 'دليل الضيوف', labelEn: 'VIP Registry', icon: 'vips' },
-        { id: 'structure', labelAr: 'المناطق والبوابات', labelEn: 'Site Map', icon: 'zones' },
-        { id: 'users', labelAr: 'المستخدمين', labelEn: 'Users & Roles', icon: 'users' },
+        { id: 'vips', label: t('nav_vips', 'Guests Directory'), path: '/vips', icon: 'vips', roles: [Role.ADMIN, Role.MANAGER, Role.OPERATOR] },
+        { id: 'zones', label: t('nav_zones', 'Zones & Gates'), path: '/zones', icon: 'zones', roles: [Role.ADMIN, Role.MANAGER] },
+        { id: 'devices', label: t('nav_devices', 'Devices'), path: '/devices', icon: 'device', roles: [Role.ADMIN] },
+        { id: 'users', label: t('nav_users', 'Users'), path: '/users', icon: 'users', roles: [Role.ADMIN] },
       ]
     }
   ];
 
-  const activeItemLabel = groups.flatMap(g => g.items).find(i => i.id === activeTab)?.[language === 'ar' ? 'labelAr' : 'labelEn'] || 'VAS COMMAND';
+  const filteredGroups = groups.map(group => ({
+    ...group,
+    items: group.items.filter(item => item.roles.includes(user.role))
+  })).filter(group => group.items.length > 0);
+
+  // Find active label for breadcrumbs
+  const activeItem = groups.flatMap(g => g.items).find(i => location.pathname === i.path);
+  const breadcrumbLabel = activeItem ? activeItem.label : 'VAS COMMAND';
 
   return (
-    <div className={`flex h-screen w-full bg-slate-50 dark:bg-slate-950 transition-colors duration-300 ${language === 'ar' ? 'rtl' : 'ltr'}`}>
-      {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 dark:bg-black text-slate-300 flex flex-col border-l dark:border-l-0 dark:border-r border-slate-800 z-50">
-        <div className="p-8">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-[0_0_20px_rgba(79,70,229,0.5)]">V</div>
-            <div className={language === 'ar' ? 'text-right' : 'text-left'}>
+    <div className={`flex h-screen w-full bg-[#020617] text-[#f8fafc] overflow-hidden ${isRtl ? 'rtl' : 'ltr'}`} dir={isRtl ? 'rtl' : 'ltr'}>
+      {/* Main Content Area (Left on RTL, Right on LTR) */}
+      <div className="flex-1 flex flex-col min-w-0 relative h-full">
+        {/* Header */}
+        <header className="h-20 bg-[#020617]/50 backdrop-blur-md border-b border-[#1e293b] flex items-center justify-between px-10 shrink-0 z-40">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+              <span>VAS</span>
+              <VAS_ICONS.arrow size={10} className={isRtl ? 'rotate-180' : ''} />
+              <span className="text-white">{breadcrumbLabel}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <button className="relative p-3 bg-[#1e293b]/50 rounded-2xl border border-[#1e293b] group hover:bg-primary/10 transition-all">
+              <VAS_ICONS.notifications size={20} className="text-slate-400 group-hover:text-primary" />
+              <span className="absolute -top-1 -left-1 w-5 h-5 bg-rose-600 text-white text-[9px] font-black rounded-full border-2 border-[#020617] flex items-center justify-center animate-bounce shadow-lg shadow-rose-600/20">
+                50
+              </span>
+            </button>
+
+            <div className={`flex items-center gap-4 ${isRtl ? 'pr-6 border-r' : 'pl-6 border-l'} border-[#1e293b]`}>
+              <div className={isRtl ? 'text-right' : 'text-left'}>
+                <p className="text-[11px] font-black text-white leading-none mb-1">{user.name}</p>
+                <span className="text-[9px] text-[#22c55e] font-black uppercase tracking-widest leading-none">{user.role}</span>
+              </div>
+              <div className="w-10 h-10 rounded-2xl bg-[#1e293b] overflow-hidden ring-4 ring-[#1e293b]/30">
+                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`} alt="Avatar" />
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <div className="flex-1 overflow-auto p-10 bg-[#020617]">
+          <Outlet />
+        </div>
+      </div>
+
+      {/* Sidebar (Right on RTL, Left on LTR) */}
+      <aside className={`w-80 bg-[#020617] flex flex-col border-s border-[#1e293b] z-50`}>
+        <div className="p-8 flex items-center justify-center border-b border-[#1e293b]/50">
+          <div className="flex items-center gap-4">
+            <div className={`text-right ${isRtl ? 'items-end' : 'items-start'} flex flex-col`}>
               <span className="text-xl font-black text-white tracking-tighter leading-none block">VAS COMMAND</span>
               <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1 block">PLATFORM_v2.5</span>
             </div>
+            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-white font-black text-2xl shadow-[0_0_30px_rgba(147,51,234,0.4)]">V</div>
           </div>
         </div>
 
-        <nav className="flex-1 px-4 space-y-6 overflow-y-auto no-scrollbar">
-          {groups.map((group, idx) => (
-            <div key={idx} className="space-y-2">
-              <p className="px-4 text-[9px] font-black text-slate-600 uppercase tracking-widest">{language === 'ar' ? group.titleAr : group.titleEn}</p>
-              <div className="space-y-1">
+        <nav className="flex-1 px-6 pt-10 space-y-10 overflow-y-auto no-scrollbar">
+          {filteredGroups.map((group, idx) => (
+            <div key={idx} className="space-y-4">
+              <p className={`px-4 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] ${isRtl ? 'text-right' : 'text-left'}`}>
+                {group.title}
+              </p>
+              <div className="space-y-2">
                 {group.items.map((item) => {
                   const Icon = VAS_ICONS[item.icon as keyof typeof VAS_ICONS];
                   return (
-                    <button
+                    <NavLink
                       key={item.id}
-                      onClick={() => setActiveTab(item.id)}
-                      className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group relative ${
-                        activeTab === item.id 
-                        ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20' 
-                        : 'hover:bg-slate-800/50 hover:text-white'
-                      }`}
+                      to={item.path}
+                      className={({ isActive }) => `
+                        w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 group relative
+                        ${isActive
+                          ? 'bg-primary text-white shadow-2xl shadow-primary/20'
+                          : 'hover:bg-[#1e293b]/40 text-slate-400 hover:text-white'
+                        }
+                      `}
                     >
-                      <Icon className={`w-5 h-5 ${activeTab === item.id ? 'text-white' : 'text-slate-500 group-hover:text-indigo-400'}`} />
-                      <span className="font-black text-xs uppercase tracking-widest">{language === 'ar' ? item.labelAr : item.labelEn}</span>
-                      {activeTab === item.id && (
-                         <div className={`absolute ${language === 'ar' ? '-right-2' : '-left-2'} w-1 h-5 bg-white rounded-full`}></div>
+                      <Icon className={`w-5 h-5 transition-colors`} />
+                      <span className="font-black text-[11px] uppercase tracking-widest">{item.label}</span>
+                      {location.pathname === item.path && (
+                        <div className={`absolute ${isRtl ? '-right-1' : '-left-1'} w-1 h-6 bg-white rounded-full`}></div>
                       )}
-                    </button>
+                    </NavLink>
                   );
                 })}
               </div>
@@ -80,53 +151,27 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           ))}
         </nav>
 
-        <div className="p-6 mt-auto">
-          <button 
-            onClick={() => setActiveTab('settings')}
-            className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all ${activeTab === 'settings' ? 'bg-slate-800 text-white border border-slate-700' : 'text-slate-500 hover:text-white'}`}
+        <div className="p-8 space-y-4 border-t border-[#1e293b]/50">
+          <NavLink
+            to="/settings"
+            className={({ isActive }) => `
+              w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all
+              ${isActive ? 'bg-[#1e293b] text-white' : 'text-slate-500 hover:text-white'}
+            `}
           >
             <VAS_ICONS.settings size={20} />
-            <span className="font-black text-xs uppercase tracking-widest">{language === 'ar' ? 'الإعدادات' : 'Settings'}</span>
+            <span className="font-black text-[11px] uppercase tracking-widest">{t('nav_settings', 'Settings')}</span>
+          </NavLink>
+
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-rose-500 hover:bg-rose-500/10 transition-all group"
+          >
+            <VAS_ICONS.logout size={20} className="group-hover:scale-110 transition-transform" />
+            <span className="font-black text-[11px] uppercase tracking-widest">{t('nav_logout', 'Logout')}</span>
           </button>
         </div>
       </aside>
-
-      {/* Main Shell */}
-      <main className="flex-1 flex flex-col min-w-0 relative">
-        <header className="h-20 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-10 shrink-0 z-40">
-          <div className="flex items-center gap-4">
-             <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                <span>VAS</span>
-                <VAS_ICONS.arrow size={10} className={language === 'ar' ? 'rotate-180' : ''} />
-                <span className="text-slate-900 dark:text-white">{activeItemLabel}</span>
-             </div>
-          </div>
-
-          <div className="flex items-center gap-6">
-             <button onClick={onBellClick} className="relative p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 group hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all">
-                <VAS_ICONS.notifications size={20} className="text-slate-500 group-hover:text-indigo-600" />
-                {unreadNotifsCount > 0 && (
-                   <span className="absolute -top-1 -left-1 w-5 h-5 bg-rose-600 text-white text-[9px] font-black rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center animate-bounce shadow-lg">
-                      {unreadNotifsCount}
-                   </span>
-                )}
-             </button>
-             <div className={`flex items-center gap-4 ${language === 'ar' ? 'pr-6 border-r' : 'pl-6 border-l'} border-slate-200 dark:border-slate-800`}>
-                <div className={language === 'ar' ? 'text-right' : 'text-left'}>
-                   <p className="text-[11px] font-black text-slate-900 dark:text-slate-100 leading-none mb-1">عبدالرحمن القحطاني</p>
-                   <span className="text-[9px] text-emerald-500 font-black uppercase tracking-widest leading-none">Admin Authority</span>
-                </div>
-                <div className="w-10 h-10 rounded-2xl bg-slate-200 dark:bg-slate-700 overflow-hidden ring-4 ring-slate-100 dark:ring-slate-800">
-                   <img src="https://picsum.photos/seed/admin/100/100" alt="Avatar" />
-                </div>
-             </div>
-          </div>
-        </header>
-
-        <div className="flex-1 overflow-auto p-10 bg-slate-50 dark:bg-slate-950">
-          {children}
-        </div>
-      </main>
     </div>
   );
 };
