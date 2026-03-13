@@ -1,3 +1,5 @@
+import { Role } from "../users/types";
+
 export interface ILoginDto {
     email: string;
     password: string;
@@ -10,10 +12,3 @@ export interface ILoginResponse {
     role: Role
 }
 
-export enum Role {
-    ADMIN = "ADMIN",
-    OPERATOR = "OPERATOR",
-    MANAGER = "MANAGER",
-    OBSERVER = "OBSERVER",
-    GATE_GUARD = "GATE_GUARD"
-}

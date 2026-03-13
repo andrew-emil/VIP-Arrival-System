@@ -12,6 +12,7 @@ import { Role } from '@prisma/client';
 @ApiTags('VIP')
 @Controller('vip')
 @UseGuards(RolesGuard)
+@Roles(Role.ADMIN, Role.MANAGER, Role.OPERATOR)
 export class VipController {
     constructor(
         private readonly vipService: VipService,
@@ -19,7 +20,6 @@ export class VipController {
     ) { }
 
     @Post()
-    @Roles(Role.MANAGER, Role.OPERATOR)
     @ApiOperation({ summary: 'Create a new VIP record' })
     @ApiResponse({ status: 201, description: 'The VIP has been successfully created.' })
     async create(@Body() createVipDto: CreateVipDto) {
@@ -49,7 +49,7 @@ export class VipController {
     }
 
     @Get()
-    @Roles(Role.MANAGER, Role.OPERATOR, Role.OBSERVER)
+    @Roles(Role.OBSERVER)
     @ApiOperation({ summary: 'List all VIPs' })
     @ApiQuery({ name: 'plate', required: false, description: 'Filter by plate number' })
     @ApiResponse({ status: 200, description: 'List of VIPs.' })

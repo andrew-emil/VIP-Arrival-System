@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Session,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBody,
@@ -22,18 +23,17 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
-import { UseGuards } from '@nestjs/common';
 
 @ApiTags('Users')
 @Controller('users')
 @UseGuards(RolesGuard)
+@Roles(Role.ADMIN,)
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
   // ─── Create user ─────────────────────────────────────────────────────────────
 
   @Post()
-  @Roles(Role.ADMIN)
   @HttpCode(201)
   @ApiOperation({ summary: 'Create a new user (admin only)' })
   @ApiBody({ type: CreateUserDto })
@@ -50,7 +50,6 @@ export class UsersController {
   // ─── List all users ───────────────────────────────────────────────────────────
 
   @Get()
-  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Get all users (admin only)' })
   @ApiResponse({ status: 200, description: 'List of all users' })
   findAllUsers() {
@@ -60,7 +59,6 @@ export class UsersController {
   // ─── Get single user ──────────────────────────────────────────────────────────
 
   @Get(':id')
-  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Get a single user by ID (admin only)' })
   @ApiParam({ name: 'id', description: 'User UUID' })
   @ApiResponse({ status: 200, description: 'User found' })
@@ -72,7 +70,6 @@ export class UsersController {
   // ─── Update user ──────────────────────────────────────────────────────────────
 
   @Patch(':id')
-  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Update user name, role, or active status (admin only)' })
   @ApiParam({ name: 'id', description: 'User UUID' })
   @ApiBody({ type: UpdateUserDto })
@@ -85,7 +82,6 @@ export class UsersController {
   // ─── Assign permissions ───────────────────────────────────────────────────────
 
   @Post(':id/permissions')
-  @Roles(Role.ADMIN)
   @HttpCode(200)
   @ApiOperation({ summary: 'Assign permissions to a user (admin only)' })
   @ApiParam({ name: 'id', description: 'User UUID' })
@@ -104,7 +100,6 @@ export class UsersController {
   // ─── Delete user ──────────────────────────────────────────────────────────────
 
   @Delete(':id')
-  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Delete a user (admin only)' })
   @ApiParam({ name: 'id', description: 'User UUID' })
   @ApiResponse({ status: 200, description: 'User deleted successfully' })

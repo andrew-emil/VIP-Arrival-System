@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router";
 import { loginAction } from "./actions/login.action";
+import { Layout } from "./layout/Layout";
 import { requireRole } from "./loaders/role.loader";
 import { rootLoader } from "./loaders/root.loader";
 import AdminPage from "./pages/AdminPage";
@@ -7,12 +8,12 @@ import DevicesPage from "./pages/DevicesPage";
 import GatePage from "./pages/GatePage";
 import { Login } from "./pages/Login";
 import MonitorPage from "./pages/MonitorPage";
+import NotFound from "./pages/NotFound";
 import OpsPage from "./pages/OpsPage";
 import SessionsPage from "./pages/SessionsPage";
+import SettingsPage from "./pages/SettingsPage";
 import VipsPage from "./pages/VipsPage";
-import NotFound from "./pages/NotFound";
 import { Role } from "./types/auth";
-import { Layout } from "./components/Layout";
 
 const router = createBrowserRouter([
   { path: '/', loader: rootLoader },
@@ -57,6 +58,10 @@ const router = createBrowserRouter([
         element: <DevicesPage />,
         loader: requireRole([Role.ADMIN])
       },
+      {
+        path: '/settings',
+        element: <SettingsPage />,
+      }
     ]
   },
 

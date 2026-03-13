@@ -13,7 +13,7 @@ export class FeedController {
     constructor(private readonly feedService: FeedService) { }
 
     @Get()
-    @Roles(Role.MANAGER, Role.OPERATOR, Role.OBSERVER)
+    @Roles(Role.MANAGER, Role.OPERATOR, Role.OBSERVER, Role.ADMIN)
     @ApiOperation({ summary: 'Get live feed of plate reads' })
     @ApiQuery({ name: 'since', required: false, description: 'ISO date string to fetch records after' })
     @ApiQuery({ name: 'limit', required: false, description: 'Number of records to return' })

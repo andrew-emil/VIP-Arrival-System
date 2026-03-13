@@ -27,5 +27,12 @@
     "nav_devices": "Devices",
     "nav_users": "Users",
     "nav_settings": "Settings",
-    "nav_logout": "Logout"
+    "nav_logout": "Logout",
+    "settings": {
+        "title": "Settings",
+        "language": "Language",
+        "theme": "Theme",
+        "languageDesc": "System interface language",
+        "themeDesc": "Dark / Light Control"
+    }
 }

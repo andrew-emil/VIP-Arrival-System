@@ -1,10 +1,14 @@
+import LoadingIndicator from '@/components/LoadingIndicator';
+import { useGlobalNavigationLoading } from '@/hooks/useGlobalNavigationLoading';
+import { useUser } from '@/hooks/useUser';
 import { useEffect, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { ErrorResponse, useActionData, useNavigate, useSubmit } from 'react-router-dom';
+import { useActionData, useNavigate, useSubmit } from 'react-router';
 import { ModeToggle } from '../components/mode-toggle';
 import { VAS_ICONS } from '../config/icons';
 import { ILoginResponse } from '../types/auth';
+import { CustomErrorResponse } from '../types/error-response.type';
 
 type Inputs = {
     email: string;
@@ -14,10 +18,12 @@ type Inputs = {
 export function Login() {
     const { t } = useTranslation()
     const submit = useSubmit();
+    const { setUser } = useUser()
     const navigate = useNavigate();
-    const actionData = useActionData<ILoginResponse | ErrorResponse>();
+    const actionData = useActionData<ILoginResponse | CustomErrorResponse>();
     const { register, handleSubmit, formState: { errors } } = useForm<Inputs>()
     const [error, setError] = useState<string | null>(null);
+    const isLoading = useGlobalNavigationLoading();
 
     const onSubmit: SubmitHandler<Inputs> = (data: Inputs, e: React.ChangeEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -25,13 +31,15 @@ export function Login() {
     };
 
     useEffect(() => {
-        if (actionData) {
-            if (actionData instanceof Error) {
-                setError(actionData.message);
-            } else {
-                navigate('/dashboard');
-            }
+        if (!actionData) return;
+        console.log(actionData)
+        if ("statusCode" in actionData) {
+            setError(actionData.message);
+            return
         }
+
+        setUser(actionData)
+        navigate('/')
     }, [actionData]);
 
     return (
@@ -125,8 +133,10 @@ export function Login() {
 
                         <button
                             type="submit"
+                            disabled={isLoading}
                             className="w-full flex items-center justify-center gap-3 py-5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/30 transition-all active:scale-95 group"
                         >
+                            {isLoading ? <LoadingIndicator /> : null}
                             {t('login.submit')}
                             <VAS_ICONS.arrow className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </button>

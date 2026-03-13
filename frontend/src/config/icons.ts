@@ -1,10 +1,10 @@
-
-import { 
-  LayoutDashboard, Users, Camera, History, FileText, Settings, 
-  ShieldCheck, Map, DoorOpen, Bell, Languages, Globe, Volume2, 
-  Activity, Lock, UserPlus, Trash2, Edit3, ChevronRight, 
+import {
+  LayoutDashboard, Users, Camera, History, FileText, Settings,
+  ShieldCheck, Map, DoorOpen, Bell, Languages, Globe, Volume2,
+  Activity, Lock, UserPlus, Trash2, Edit3, ChevronRight,
   Search, LogOut, Moon, Sun, Zap, Info, AlertTriangle, CheckCircle2,
-  Maximize2, Plus, VolumeX, LayoutGrid, ShieldAlert, Mail, Smartphone
+  Maximize2, Plus, VolumeX, LayoutGrid, ShieldAlert, Mail, Smartphone,
+  Monitor
 } from 'lucide-react';
 
 export const VAS_ICONS = {
@@ -41,5 +41,6 @@ export const VAS_ICONS = {
   density: LayoutGrid,
   shield: ShieldAlert,
   mail: Mail,
-  device: Smartphone
+  device: Smartphone,
+  monitor: Monitor
 };

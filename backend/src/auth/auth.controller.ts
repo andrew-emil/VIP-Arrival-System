@@ -34,7 +34,7 @@ export class AuthController {
     ) {
         const user = await this.authService.login(dto);
         session['userId'] = user.id;
-        return { message: 'Logged in successfully', user };
+        return { user };
     }
 
     @Post('logout')

@@ -49,7 +49,7 @@ export class EventsController {
   }
 
   @Patch(':id')
-  @Roles(Role.MANAGER, Role.OPERATOR)
+  @Roles(Role.MANAGER)
   @ApiOperation({ summary: 'Update an event' })
   @ApiParam({ name: 'id', description: 'Event UUID' })
   @ApiBody({ type: UpdateEventDto })

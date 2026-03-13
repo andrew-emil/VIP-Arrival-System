@@ -27,5 +27,12 @@
     "nav_devices": "الأجهزة",
     "nav_users": "المستخدمين",
     "nav_settings": "الإعدادات",
-    "nav_logout": "تسجيل الخروج"
+    "nav_logout": "تسجيل الخروج",
+    "settings": {
+        "title": "إعدادات النظام",
+        "language": "اللغة",
+        "theme": "السمة",
+        "languageDesc": "لغة واجهة النظام",
+        "themeDesc": "التحكم في الوضع الليلي / النهاري"
+    }
 }
