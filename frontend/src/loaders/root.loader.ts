@@ -1,19 +1,21 @@
+import { Role } from "@/services/users";
 import { redirect } from "react-router";
-import { getCurrentUser } from "../services/auth";
-import { Role } from "../types/auth";
+import { getCurrentUser } from "@/services/auth";
 
 export async function rootLoader() {
     const user = await getCurrentUser()
-    if (!user) redirect("/login")
+    console.log(user)
+    if (!user) return redirect("/login")
 
-    switch (user.role) {
+    const role = user.role
+
+    switch (role) {
         case Role.ADMIN:
-            return redirect('/admin')
+            return redirect('/admin/dashboard')
         case Role.MANAGER:
+            return redirect('/manager/monitor')
         case Role.OPERATOR:
-            return redirect('/dashboard')
-        case Role.OBSERVER:
-            return redirect('/monitor')
+            return redirect('/operator/dashboard')
         case Role.GATE_GUARD:
             return redirect('/gate')
         default:

@@ -1,5 +1,6 @@
-import api from "@/lib/api"
-import { IUser } from "./types"
+
+import api from "@/lib/api";
+import { IUser } from "../users";
 
 async function fetchCurrentUser() {
     try {

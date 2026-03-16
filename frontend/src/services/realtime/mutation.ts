@@ -4,13 +4,13 @@ export async function generateRealtimeTicket() {
     try {
         const { data } = await api.post<{ ticket: string }>("/realtime/ticket");
         return data.ticket;
-    } catch (error: any) {
+    } catch (error) {
         throw error?.response?.data?.message || error.message;
     }
 }
 
 export function connectRealtimeStream(ticket: string) {
-    const url = `${import.meta.env.VITE_API_URL}/realtime/stream?ticket=${ticket}`;
+    const url = `${import.meta.env.VITE_API_BASE_URL}/realtime/stream?ticket=${ticket}`;
 
     const eventSource = new EventSource(url);
 

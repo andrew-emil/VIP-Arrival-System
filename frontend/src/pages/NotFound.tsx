@@ -1,6 +1,6 @@
-import { useNavigate } from 'react-router-dom';
+import { AlertCircle, ArrowLeft, Home } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { AlertCircle, Home, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router';
 
 export function NotFound() {
   const { t } = useTranslation();
@@ -19,7 +19,7 @@ export function NotFound() {
           </h1>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-20 h-20 bg-primary/20 rounded-3xl flex items-center justify-center backdrop-blur-sm border border-primary/20 shadow-2xl shadow-primary/20 rotate-12 transition-transform hover:rotate-0 duration-500">
-               <AlertCircle className="w-10 h-10 text-primary" />
+              <AlertCircle className="w-10 h-10 text-primary" />
             </div>
           </div>
         </div>
@@ -41,7 +41,7 @@ export function NotFound() {
             <Home className="w-4 h-4" />
             {t('go_home', 'Go Home')}
           </button>
-          
+
           <button
             onClick={() => navigate(-1)}
             className="px-8 py-4 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 border border-border/50 flex items-center justify-center gap-2"
@@ -51,7 +51,7 @@ export function NotFound() {
           </button>
         </div>
       </div>
-      
+
       <div className="absolute bottom-8 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30 flex items-center gap-2">
         <span className="w-8 h-[1px] bg-border/20" />
         VAS — VIP ARRIVAL SYSTEM

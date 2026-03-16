@@ -1,21 +1,27 @@
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import '@/i18n';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider } from "react-router";
-import { ThemeProvider } from "./context/theme-context";
-import { UserProvider } from "./context/user-context";
-import router from "./router";
+import { router } from "./router";
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient();
 
-const App = () => {
-  return (
-    <ThemeProvider defaultTheme="system" storageKey="vas-ui-theme">
-      <QueryClientProvider client={queryClient}>
-        <UserProvider>
-          <RouterProvider router={router} />
-        </UserProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
-  );
-};
+// Initialize RTL for Arabic default
+if (typeof document !== 'undefined') {
+  document.documentElement.dir = 'rtl';
+  document.documentElement.lang = 'ar';
+}
 
-export default App
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <RouterProvider router={router} />
+    </TooltipProvider>
+  </QueryClientProvider>
+);
+
+export default App;

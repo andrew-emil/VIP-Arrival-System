@@ -3,8 +3,8 @@ import { ILoginDto, ILoginResponse } from "./types"
 
 export async function login(dto: ILoginDto) {
     try {
-        const { data } = await api.post<ILoginResponse>('/auth/login', dto)
-        return data
+        const { data } = await api.post<{ user: ILoginResponse }>('/auth/login', dto)
+        return data.user
     } catch (error) {
         throw error?.response?.data?.message || error.message;
     }
