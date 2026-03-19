@@ -7,7 +7,7 @@ export async function getVips(plate?: string) {
             params: { plate },
         });
         return data;
-    } catch (error: any) {
+    } catch (error) {
         throw error?.response?.data?.message || error.message;
     }
 }

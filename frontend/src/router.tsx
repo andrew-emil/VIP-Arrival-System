@@ -1,8 +1,8 @@
-import { createBrowserRouter, Navigate } from "react-router";
+import { createBrowserRouter } from "react-router";
 import { requireRole } from "./loaders/role.loader";
 import { rootLoader } from "./loaders/root.loader";
+import AccountDevicePage from "./pages/AccountDevicePage";
 import AdminDashboard from "./pages/AdminDashboard";
-import CamerasPage from "./pages/CamerasPage";
 import EventsPage from "./pages/EventsPage";
 import GatePage from "./pages/GatePage";
 import LoginPage from "./pages/LoginPage";
@@ -12,6 +12,7 @@ import OperatorDashboard from "./pages/OperatorDashboard";
 import SettingsPage from "./pages/SettingsPage";
 import UsersPage from "./pages/UsersPage";
 import VipsPage from "./pages/VipsPage";
+import CamerasPage from "./pages/CamerasPage";
 
 export const router = createBrowserRouter([
     {
@@ -49,8 +50,13 @@ export const router = createBrowserRouter([
     },
     {
         path: "/cameras",
-        loader: requireRole(['admin', 'operator']),
+        loader: requireRole(['admin']),
         element: <CamerasPage />,
+    },
+    {
+        path: "/devices",
+        loader: requireRole(['admin', 'operator']),
+        element: <AccountDevicePage />,
     },
     {
         path: "/users",

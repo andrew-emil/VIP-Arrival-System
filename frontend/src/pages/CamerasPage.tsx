@@ -1,52 +1,198 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
-import { useCameraStore } from '@/stores/cameraStore';
+import {
+  getCameras,
+  getCameraHealth,
+  deleteCamera,
+  CameraQueryKeys,
+  ICamera,
+  ICameraHealth,
+} from '@/services/camera';
+
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Loader2, MoreHorizontal, Eye, Edit, Trash } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useEventStore } from '@/stores/eventStore';
+
+import { AddCameraDialog } from '@/components/AddCameraDialog';
+import { EditCameraDialog } from '@/components/EditCameraDialog';
+import { CameraDetailsDialog } from '@/components/CameraDetailsDialog';
 
 export default function CamerasPage() {
   const { t } = useTranslation();
-  const cameras = useCameraStore((s) => s.cameras);
+  const queryClient = useQueryClient();
+  const events = useEventStore((s) => s.events);
+
+  const [editingCamera, setEditingCamera] = useState<ICamera | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  const [viewingCamera, setViewingCamera] = useState<ICamera | null>(null);
+  const [viewingHealth, setViewingHealth] = useState<ICameraHealth | null>(null);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+
+  const { data: cameras = [], isLoading: isLoadingCameras } = useQuery({
+    queryKey: CameraQueryKeys.findAll(),
+    queryFn: getCameras,
+  });
+
+  const { data: healthData = [], isLoading: isLoadingHealth } = useQuery({
+    queryKey: CameraQueryKeys.health(),
+    queryFn: getCameraHealth,
+    refetchInterval: 30000, // Refresh health every 30s
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteCamera,
+    onSuccess: () => {
+      toast.success(t('cameras.deleteSuccess'));
+      queryClient.invalidateQueries({ queryKey: CameraQueryKeys.all() });
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || t('common.error', 'An error occurred'));
+    }
+  });
+
+  const handleDelete = (id: string) => {
+    if (window.confirm(t('cameras.confirmDelete'))) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const handleEdit = (camera: ICamera) => {
+    setEditingCamera(camera);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleViewDetails = (camera: ICamera) => {
+    const health = healthData.find(h => h.id === camera.id) || null;
+    setViewingCamera(camera);
+    setViewingHealth(health);
+    setIsDetailsDialogOpen(true);
+  };
+
+  const isLoading = isLoadingCameras || isLoadingHealth;
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">{t('cameras.title')}</h1>
-        <div className="rounded-lg border">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">{t('nav.cameras')}</h1>
+          <AddCameraDialog />
+        </div>
+
+        <div className="rounded-lg border bg-card">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>{t('common.name')}</TableHead>
-                <TableHead>{t('cameras.location')}</TableHead>
+                <TableHead>{t('cameras.ipAddress')}</TableHead>
                 <TableHead>{t('cameras.cameraRole')}</TableHead>
-                <TableHead>{t('cameras.lastSeen')}</TableHead>
+                <TableHead>{t('events.event')}</TableHead>
                 <TableHead>{t('cameras.health')}</TableHead>
+                <TableHead className="w-[80px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {cameras.map((cam) => (
-                <TableRow key={cam.id}>
-                  <TableCell className="font-medium">{cam.name}</TableCell>
-                  <TableCell>{cam.location}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{t(`cameras.${cam.role}`)}</Badge>
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {new Date(cam.lastSeen).toLocaleTimeString()}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className={cn('w-2 h-2 rounded-full', cam.isOnline ? 'bg-alert-arrived' : 'bg-alert-error')} />
-                      <span className="text-xs">{cam.isOnline ? t('common.online') : t('common.offline')}</span>
-                    </div>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : cameras.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    {t('common.noData')}
+                  </TableCell>
+                </TableRow>
+              ) : cameras.map((camera) => {
+                const health = healthData.find(h => h.id === camera.id);
+                const isOnline = health?.isOnline ?? false;
+                const eventName = events.find(e => e.id === camera.eventId)?.name || camera.eventId;
+
+                return (
+                  <TableRow key={camera.id}>
+                    <TableCell className="font-medium cursor-pointer" onClick={() => handleViewDetails(camera)}>
+                      {camera.name}
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">{camera.ip}</TableCell>
+                    <TableCell>
+                      <Badge variant={camera.role === 'GATE' ? 'default' : 'secondary'} className="uppercase">
+                        {t(`cameras.${camera.role.toLowerCase()}`)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm truncate max-w-[150px] inline-block">{eventName}</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className={cn("w-2 h-2 rounded-full", isOnline ? "bg-alert-arrived" : "bg-alert-error")} />
+                        <span className={cn("text-xs font-medium", isOnline ? "text-alert-arrived" : "text-alert-error")}>
+                          {isOnline ? t('common.online') : t('common.offline')}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>{t('common.actions')}</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleViewDetails(camera)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            {t('common.view')}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEdit(camera)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            {t('common.edit')}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(camera.id)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash className="mr-2 h-4 w-4" />
+                            {t('common.delete')}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
       </div>
+
+      <EditCameraDialog 
+        camera={editingCamera} 
+        isOpen={isEditDialogOpen} 
+        onOpenChange={setIsEditDialogOpen} 
+      />
+
+      <CameraDetailsDialog 
+        camera={viewingCamera} 
+        health={viewingHealth}
+        isOpen={isDetailsDialogOpen} 
+        onOpenChange={setIsDetailsDialogOpen} 
+      />
     </DashboardLayout>
   );
 }

@@ -11,8 +11,6 @@ import { Car, CheckCircle, Radio, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-
-
 export default function AdminDashboard() {
   const { t } = useTranslation();
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);

@@ -11,6 +11,7 @@ export class DeviceService {
   async createDevice(dto: CreateDeviceDto) {
     const deviceId = randomUUID();
     const temporaryPassword = Math.random().toString(36).slice(-10);
+    console.log(temporaryPassword);
 
     return this.prisma.deviceAccount.create({
       data: {

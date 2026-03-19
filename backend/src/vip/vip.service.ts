@@ -1,10 +1,11 @@
-import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CameraRole, SessionStatus } from '@prisma/client';
 import { PrismaService } from 'src/core/prisma/prisma.service';
 import { normalizePlate } from 'src/core/utils/plate-normalizer';
 import { RealtimeEvent } from '../realtime/realtime.enums';
 import { RealtimeService } from '../realtime/realtime.service';
 import { CreateVipDto } from './dto/createVip.dto';
+import { UpdateVipDto } from './dto/updateVip.dto';
 
 @Injectable()
 export class VipService {
@@ -75,6 +76,71 @@ export class VipService {
                 name: v.name,
             })),
         };
+    }
+
+    async update(id: string, updateVipDto: UpdateVipDto) {
+        const { plate, name, company, protocolLevel, notes, photoUrl } = updateVipDto;
+        if (!plate) throw new BadRequestException('plate is required');
+
+        const plateNormalized = normalizePlate(plate);
+
+        const vip = await this.prisma.vip.findUnique({
+            where: { id },
+            include: { plates: true },
+        });
+
+        if (!vip) throw new NotFoundException('VIP not found');
+
+        // Ensure the plate isn't already assigned to a different VIP
+        const existingVip = await this.prisma.vip.findFirst({
+            where: {
+                id: { not: vip.id },
+                plates: {
+                    some: {
+                        plateNumber: plateNormalized,
+                    },
+                },
+            },
+        });
+
+        if (existingVip) {
+            throw new ConflictException('VIP already exists for this plate');
+        }
+
+        // VIP in this service is treated as a single-plate identity.
+        // We replace any existing plates with the provided one.
+        await this.prisma.plate.deleteMany({ where: { vipId: vip.id } });
+
+        const updatedVip = await this.prisma.vip.update({
+            where: { id: vip.id },
+            data: {
+                name: name?.trim() ?? vip.name,
+                company: company?.trim() ?? vip.company,
+                protocolLevel: protocolLevel?.trim() ?? vip.protocolLevel,
+                notes: notes?.trim() ?? vip.notes,
+                photoUrl: photoUrl?.trim() ?? vip.photoUrl,
+                plates: {
+                    create: { plateNumber: plateNormalized },
+                },
+            },
+            include: { plates: true },
+        });
+
+        return updatedVip;
+    }
+
+    async remove(id: string) {
+        const vip = await this.prisma.vip.findUnique({
+            where: { id },
+        });
+
+        if (!vip) throw new NotFoundException('VIP not found');
+
+        // Explicit cleanup to avoid relying on cascade configuration.
+        await this.prisma.vipSession.deleteMany({ where: { vipId: id } });
+        await this.prisma.plate.deleteMany({ where: { vipId: id } });
+
+        return this.prisma.vip.delete({ where: { id } });
     }
 
     async createSessionIfNotExists(vipId: string, eventId: string) {

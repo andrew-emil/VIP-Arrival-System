@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { useAuthStore } from '@/stores/authStore';
 import { UserRole } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Globe, Shield } from 'lucide-react';
+import { Eye, EyeOff, Globe, Shield } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -26,6 +26,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const loginStore = useAuthStore((s) => s.login);
   const [show, setShow] = useState(false);
+  const [showPass, setShowPass] = useState(false);
 
   const {
     register,
@@ -52,7 +53,6 @@ export default function LoginPage() {
     try {
       const data = await login(formData);
 
-      console.log(data)
       loginStore({
         id: data.id,
         name: data.name,
@@ -66,7 +66,6 @@ export default function LoginPage() {
         [Role.MANAGER]: '/manager/monitor',
         [Role.GATE_GUARD]: '/gate',
       };
-      console.log(data.role)
       navigate(redirectMap[data.role]);
     } catch (err) {
       setError('root', {
@@ -112,12 +111,28 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">{t('common.password')}</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                {...register('password')}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPass ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  {...register('password')}
+                  className="pe-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute inset-y-0 end-0 hover:bg-transparent"
+                  onClick={() => setShowPass(!showPass)}
+                >
+                  {showPass ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </Button>
+              </div>
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password.message}</p>
               )}
