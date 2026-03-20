@@ -10,7 +10,7 @@ export interface IDevice {
     cameraId: string;
     deviceId: string;
     name: string;
-    temporaryPassword: string | null;
+    temporaryPassword: string;
     isActive: boolean;
     createdAt: Date;
 }

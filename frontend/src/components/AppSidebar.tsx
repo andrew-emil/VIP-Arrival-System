@@ -37,9 +37,11 @@ export function AppSidebar({ side = 'left' }: AppSidebarProps) {
     { title: t('nav.events'), url: '/events', icon: Calendar, roles: [Role.ADMIN] },
     { title: t('nav.cameras'), url: '/cameras', icon: VAS_ICONS.cameras, roles: [Role.ADMIN, Role.OPERATOR] },
     { title: t('nav.users'), url: '/users', icon: VAS_ICONS.users, roles: [Role.ADMIN] },
+    { title: t('nav.accountDevices'), url: '/account-devices', icon: VAS_ICONS.device, roles: [Role.ADMIN] },
     { title: t('nav.monitor'), url: '/manager/monitor', icon: VAS_ICONS.monitor, roles: [Role.MANAGER] },
     { title: t('settings.title'), url: '/settings', icon: VAS_ICONS.settings, roles: [Role.ADMIN, Role.OPERATOR, Role.MANAGER, Role.GATE_GUARD] },
   ].filter((item) => role && item.roles.includes(role));
+
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : theme === 'light' ? 'system' : 'dark');

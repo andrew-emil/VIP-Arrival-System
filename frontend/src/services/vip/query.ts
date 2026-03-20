@@ -1,13 +1,13 @@
 import api from "@/lib/api";
-import { IVip } from "./types";
+import { GetAllVipsResponse } from "./types";
 
 export async function getVips(plate?: string) {
     try {
-        const { data } = await api.get<IVip[]>("/vip", {
+        const { data } = await api.get<GetAllVipsResponse>("/vip", {
             params: { plate },
         });
-        return data;
+        return data.items;
     } catch (error) {
-        throw error?.response?.data?.message || error.message;
+        throw error?.response?.data || error;
     }
 }

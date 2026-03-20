@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { AlertFeed } from '@/components/AlertFeed';
-import { VipDrawer } from '@/components/VipDrawer';
+import { VipDrawer } from '@/components/vip/VipDrawer';
 import { useSSE } from '@/hooks/useSSE';
 import { useAlertStore } from '@/stores/alertStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

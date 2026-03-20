@@ -31,6 +31,12 @@ export class CameraController {
         return this.cameraService.findAllCameras();
     }
 
+    @Get('health')
+    @ApiOperation({ summary: 'Get cameras health status' })
+    async health() {
+        return this.cameraService.getCameraHealth()
+    }
+
     @Get(':id')
     @ApiOperation({ summary: 'Get a camera by ID' })
     @ApiParam({ name: 'id', description: 'Camera UUID' })
@@ -57,11 +63,5 @@ export class CameraController {
     @ApiResponse({ status: 404, description: 'Camera not found' })
     remove(@Param('id') id: string) {
         return this.cameraService.deleteCamera(id);
-    }
-
-    @Get('health')
-    @ApiOperation({ summary: 'Get cameras health status' })
-    async health() {
-        return this.cameraService.getCameraHealth()
     }
 }

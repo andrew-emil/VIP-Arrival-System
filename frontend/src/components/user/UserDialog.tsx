@@ -1,20 +1,20 @@
-import { useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+import { z } from 'zod';
 
 import { createUser, updateUser } from '@/services/users/mutation';
 import { UsersQueryKeys } from '@/services/users/queryKeys';
-import { IUser, Role, CreateUserDto, UpdateUserDto } from '@/services/users/types';
+import { CreateUserDto, IUser, Role, UpdateUserDto } from '@/services/users/types';
 
 interface UserDialogProps {
   open: boolean;
@@ -29,14 +29,14 @@ export function UserDialog({ open, onOpenChange, editing, onClose }: UserDialogP
 
   const userSchema = z.object({
     name: z.string().min(1, 'Name is required'),
-    email: z.string().email('Invalid email address'),
-    role: z.nativeEnum(Role),
+    email: z.email('Invalid email address'),
+    role: z.enum(Role),
     password: z.string().optional(),
-    isActive: z.boolean(),
+    isActive: z.boolean().optional(),
   }).superRefine((data, ctx) => {
     if (!editing && (!data.password || data.password.length < 6)) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ['password'],
         message: 'Password must be at least 6 characters long',
       });
@@ -47,7 +47,7 @@ export function UserDialog({ open, onOpenChange, editing, onClose }: UserDialogP
 
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userSchema),
-    defaultValues: { name: '', email: '', role: Role.OPERATOR, password: '', isActive: true },
+    defaultValues: { name: '', email: '', role: Role.OPERATOR, password: '' },
   });
 
   useEffect(() => {
@@ -70,7 +70,7 @@ export function UserDialog({ open, onOpenChange, editing, onClose }: UserDialogP
     mutationFn: (dto: CreateUserDto) => createUser(dto),
     onSuccess: () => {
       toast.success(t('users.createSuccess', 'User created successfully'));
-      queryClient.invalidateQueries({ queryKey: UsersQueryKeys.all() });
+      queryClient.invalidateQueries({ queryKey: UsersQueryKeys.findAll() });
       onClose();
     },
     onError: (error: Error) => {
@@ -82,7 +82,7 @@ export function UserDialog({ open, onOpenChange, editing, onClose }: UserDialogP
     mutationFn: ({ id, dto }: { id: string; dto: UpdateUserDto }) => updateUser(id, dto),
     onSuccess: () => {
       toast.success(t('users.updateSuccess', 'User updated successfully'));
-      queryClient.invalidateQueries({ queryKey: UsersQueryKeys.all() });
+      queryClient.invalidateQueries({ queryKey: UsersQueryKeys.findAll() });
       onClose();
     },
     onError: (error: Error) => {
@@ -99,10 +99,11 @@ export function UserDialog({ open, onOpenChange, editing, onClose }: UserDialogP
         isActive: values.isActive,
       };
       if (values.password) payload.password = values.password;
-      
+
       updateMutation.mutate({ id: editing.id, dto: payload });
     } else {
-      createMutation.mutate(values as CreateUserDto);
+      const { isActive, ...createPayload } = values;
+      createMutation.mutate(createPayload as CreateUserDto);
     }
   };
 
@@ -148,7 +149,7 @@ export function UserDialog({ open, onOpenChange, editing, onClose }: UserDialogP
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {t('common.password', 'Password')} 
+                    {t('common.password', 'Password')}
                     {editing && <span className="text-muted-foreground text-xs ml-2">(Leave blank to keep current)</span>}
                   </FormLabel>
                   <FormControl>
@@ -174,14 +175,13 @@ export function UserDialog({ open, onOpenChange, editing, onClose }: UserDialogP
                       <SelectItem value={Role.ADMIN}>{t('users.admin')}</SelectItem>
                       <SelectItem value={Role.OPERATOR}>{t('users.operator')}</SelectItem>
                       <SelectItem value={Role.MANAGER}>{t('users.manager')}</SelectItem>
-                      <SelectItem value={Role.GATE_GUARD}>{t('users.gateStaff')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             {editing && (
               <FormField
                 control={form.control}
@@ -205,7 +205,7 @@ export function UserDialog({ open, onOpenChange, editing, onClose }: UserDialogP
                 )}
               />
             )}
-            
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>{t('common.cancel')}</Button>
               <Button type="submit" disabled={isPending}>

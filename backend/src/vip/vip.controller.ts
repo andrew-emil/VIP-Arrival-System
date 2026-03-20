@@ -1,14 +1,14 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Role } from '@prisma/client';
 import { subMinutes } from 'date-fns';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { PrismaService } from 'src/core/prisma/prisma.service';
 import { normalizePlate } from 'src/core/utils/plate-normalizer';
 import { CreateVipDto } from './dto/createVip.dto';
 import { UpdateVipDto } from './dto/updateVip.dto';
 import { VipService } from './vip.service';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { Roles } from 'src/auth/decorators/roles.decorator';
-import { Role } from '@prisma/client';
 
 @ApiTags('VIP')
 @Controller('vip')
@@ -98,5 +98,3 @@ export class VipController {
         return this.vipService.listVips(plate);
     }
 }
-
-

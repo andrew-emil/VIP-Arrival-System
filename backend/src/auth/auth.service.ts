@@ -1,11 +1,14 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { HashingService } from 'src/core/hashing/hashing.service';
 import { PrismaService } from 'src/core/prisma/prisma.service';
-import bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly hashingService: HashingService,
+    ) { }
 
     async login(dto: LoginDto) {
         const user = await this.prisma.user.findUnique({
@@ -16,7 +19,7 @@ export class AuthService {
             throw new UnauthorizedException('Invalid Email or password');
         }
 
-        const isMatch = await bcrypt.compare(dto.password, user.passwordHash);
+        const isMatch = await this.hashingService.comparePassword(dto.password, user.passwordHash);
         if (!isMatch) {
             throw new UnauthorizedException('Invalid Email or password');
         }
@@ -41,16 +44,31 @@ export class AuthService {
 
     async deviceLogin(deviceId: string, password: string) {
         const device = await this.prisma.deviceAccount.findUnique({
-            where: { deviceId }
+            where: { deviceId },
+            include: { camera: true },
         });
 
-        if (!device || !device.isActive || device.temporaryPassword !== password) {
-            throw new UnauthorizedException("Invalid device ID or password");
+        if (!device) throw new UnauthorizedException('Unknown device');
+        if (!device.isActive) throw new ForbiddenException('Device is deactivated');
+
+        const passwordToCheck = device.temporaryPassword;
+        if (!passwordToCheck) throw new UnauthorizedException('Invalid credentials');
+
+        const isValid = await this.hashingService.comparePassword(password, passwordToCheck);
+        if (!isValid) throw new UnauthorizedException('Invalid credentials');
+
+        if (device.temporaryPassword) {
+            await this.prisma.deviceAccount.update({
+                where: { id: device.id },
+                data: { temporaryPassword: null },
+            });
         }
 
         return {
             deviceId: device.deviceId,
-            cameraId: device.cameraId
+            name: device.name,
+            cameraId: device.cameraId,
+            cameraLabel: device.camera?.name ?? null,
         };
     }
 }

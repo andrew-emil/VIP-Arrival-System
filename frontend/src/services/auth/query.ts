@@ -7,18 +7,18 @@ async function fetchCurrentUser() {
         const { data } = await api.get<IUser>('/auth/me')
         return data
     } catch (error) {
-        throw error?.response?.data?.message || error.message;
+        throw error?.response?.data || error;
     }
 }
 
 export async function getCurrentUser() {
-    // 1) Quick local check (MVP: login sets localStorage.user)
-    const raw = localStorage.getItem('user')
+    // 1) Quick local check (MVP: login sets sessionStorage.user)
+    const raw = sessionStorage.getItem('user')
     if (raw) {
         try {
             return JSON.parse(raw) as IUser
         } catch (e) {
-            localStorage.removeItem('user')
+            sessionStorage.removeItem('user')
         }
     }
 
@@ -27,6 +27,6 @@ export async function getCurrentUser() {
     if (user && "status" in user) {
         return null
     }
-    localStorage.setItem('user', JSON.stringify(user))
+    sessionStorage.setItem('user', JSON.stringify(user))
     return user as IUser
 }

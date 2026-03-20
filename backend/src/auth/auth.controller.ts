@@ -52,6 +52,7 @@ export class AuthController {
     }
 
     @Post('device/login')
+    @HttpCode(200)
     @ApiOperation({ summary: 'Login for gate devices (tablets/phones)' })
     @ApiBody({ type: DeviceLoginDto })
     @ApiResponse({ status: 200, description: 'Login successful, returns device and camera identifiers' })

@@ -7,6 +7,6 @@ export async function findFeed(options: IFeedQueryOptions): Promise<IFeed> {
             get<IFeed>(`/feed?isVip=${options.isVip}&since=${options.since?.toISOString()}&limit=${options.limit}`)
         return data;
     } catch (error) {
-        throw error?.response?.data?.message || error.message;
+        throw error?.response?.data || error;
     }
 }

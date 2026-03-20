@@ -20,18 +20,19 @@ const protocolColors: Record<ProtocolLevel, string> = {
 };
 
 export function VipsTable({ vips, onEdit, onDelete }: VipsTableProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRtl = i18n.language === 'ar';
 
   return (
     <div className="rounded-lg border">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>{t('common.name')}</TableHead>
-            <TableHead>{t('common.company')}</TableHead>
-            <TableHead>{t('vips.protocolLevel')}</TableHead>
-            <TableHead>{t('vips.plateNumbers')}</TableHead>
-            <TableHead>{t('common.actions')}</TableHead>
+            <TableHead className={isRtl ? 'text-right' : 'text-left'}>{t('common.name')}</TableHead>
+            <TableHead className={isRtl ? 'text-right' : 'text-left'}>{t('common.company')}</TableHead>
+            <TableHead className={isRtl ? 'text-right' : 'text-left'}>{t('vips.protocolLevel')}</TableHead>
+            <TableHead className={isRtl ? 'text-right' : 'text-left'}>{t('vips.plateNumbers')}</TableHead>
+            <TableHead className={isRtl ? 'text-right' : 'text-left'}>{t('common.actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -50,10 +51,10 @@ export function VipsTable({ vips, onEdit, onDelete }: VipsTableProps) {
                   Mapping it according to available fields. 
                 */}
                 <div className="flex flex-wrap gap-1">
-                  {(vip as any).plateNumbers?.map((p: string) => (
+                  {(vip as unknown as { plateNumbers?: string[] }).plateNumbers?.map((p: string) => (
                     <span key={p} className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">{p}</span>
-                  )) || (vip as any).plate && (
-                     <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">{(vip as any).plate}</span>
+                  )) || (vip as unknown as { plate?: string }).plate && (
+                     <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">{(vip as unknown as { plate?: string }).plate}</span>
                   )}
                 </div>
               </TableCell>

@@ -52,7 +52,7 @@ export function AlertCard({ alert, onClick }: AlertCardProps) {
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-semibold text-card-foreground truncate">{alert.vipName}</span>
             <Badge className={cn('text-[10px] px-1.5 py-0', statusColors[alert.status])}>
-              {t(`alerts.${alert.status}`)}
+              {t(`alerts.${alert.status.toLocaleLowerCase()}`)}
             </Badge>
           </div>
           <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">

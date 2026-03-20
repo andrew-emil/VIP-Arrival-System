@@ -1,26 +1,31 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { randomUUID } from 'crypto';
+import { randomBytes, randomUUID } from 'crypto';
+import { HashingService } from 'src/core/hashing/hashing.service';
 import { PrismaService } from 'src/core/prisma/prisma.service';
 import { CreateDeviceDto } from './dto/create-device.dto';
 import { UpdateDeviceDto } from './dto/update-device.dto';
 
 @Injectable()
 export class DeviceService {
-  constructor(private prisma: PrismaService) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly hashingService: HashingService,
+  ) { }
 
   async createDevice(dto: CreateDeviceDto) {
     const deviceId = randomUUID();
-    const temporaryPassword = Math.random().toString(36).slice(-10);
-    console.log(temporaryPassword);
-
-    return this.prisma.deviceAccount.create({
+    const { plaintext, hash } = await this.generateTemporaryPassword();
+    const device = await this.prisma.deviceAccount.create({
       data: {
         name: dto.name,
         cameraId: dto.cameraId,
         deviceId,
-        temporaryPassword,
+        isActive: true,
+        temporaryPassword: hash,
       },
     });
+
+    return { ...device, temporaryPassword: plaintext };
   }
 
   async findAllDevices() {
@@ -61,12 +66,26 @@ export class DeviceService {
 
   async regenerateDevicePassword(id: string) {
     await this.findOneDevice(id);
+    const { plaintext, hash } = await this.generateTemporaryPassword();
 
-    const newPassword = Math.random().toString(36).slice(-10);
-
-    return this.prisma.deviceAccount.update({
+    const device = await this.prisma.deviceAccount.update({
       where: { id },
-      data: { temporaryPassword: newPassword },
+      data: { temporaryPassword: hash },
     });
+
+    return { ...device, temporaryPassword: plaintext };
+  }
+
+  async deleteDevice(id: string) {
+    await this.findOneDevice(id);
+    return this.prisma.deviceAccount.delete({
+      where: { id },
+    });
+  }
+
+  private async generateTemporaryPassword() {
+    const plaintext = randomBytes(12).toString('base64url');
+    const hash = await this.hashingService.hashPassword(plaintext);
+    return { plaintext, hash };
   }
 }

@@ -57,7 +57,7 @@ export function VipsDialog({ open, onOpenChange, editing, onClose }: VipsDialogP
           name: editing.name,
           company: editing.company || '',
           protocolLevel: (editing.protocolLevel as ProtocolLevel) || 'B',
-          plateNumbers: (editing as any).plateNumbers?.join(', ') || (editing as any).plate || '',
+          plateNumbers: (editing as unknown as { plateNumbers?: string[] }).plateNumbers?.join(', ') || (editing as unknown as { plate?: string }).plate || '',
           notes: editing.notes || '',
         });
       } else {
@@ -73,9 +73,9 @@ export function VipsDialog({ open, onOpenChange, editing, onClose }: VipsDialogP
   }, [open, editing, form]);
 
   const createMutation = useMutation({
-    // We cast to any because the CreateVipDto in types.ts is minimal, 
+    // We cast to unknown because the CreateVipDto in types.ts is minimal, 
     // but the actual API likely supports more fields.
-    mutationFn: (dto: any) => createVip(dto),
+    mutationFn: (dto: Record<string, unknown>) => createVip(dto as unknown as Parameters<typeof createVip>[0]),
     onSuccess: () => {
       toast.success(t('vips.createSuccess', 'VIP created successfully'));
       queryClient.invalidateQueries({ queryKey: VipQueryKeys.all() });
@@ -87,7 +87,7 @@ export function VipsDialog({ open, onOpenChange, editing, onClose }: VipsDialogP
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, dto }: { id: string; dto: any }) => updateVip(id, dto),
+    mutationFn: ({ id, dto }: { id: string; dto: Record<string, unknown> }) => updateVip(id, dto as unknown as Parameters<typeof updateVip>[1]),
     onSuccess: () => {
       toast.success(t('vips.updateSuccess', 'VIP updated successfully'));
       queryClient.invalidateQueries({ queryKey: VipQueryKeys.all() });

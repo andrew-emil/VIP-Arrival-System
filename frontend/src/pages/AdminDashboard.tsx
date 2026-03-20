@@ -1,6 +1,6 @@
 import { AlertFeed } from '@/components/AlertFeed';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { VipDrawer } from '@/components/VipDrawer';
+import { VipDrawer } from '@/components/vip/VipDrawer';
 import { useSSE } from '@/hooks/useSSE';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { getSessions, SessionsQueryKeys } from '@/services/sessions';

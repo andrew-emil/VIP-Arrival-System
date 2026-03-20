@@ -28,18 +28,19 @@ const displayRole = (role: string) => {
 };
 
 export function UserTable({ users, onEdit }: UserTableProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRtl = i18n.language === 'ar';
 
   return (
     <div className="rounded-lg border">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>{t('common.name')}</TableHead>
-            <TableHead>{t('common.email')}</TableHead>
-            <TableHead>{t('common.role')}</TableHead>
-            <TableHead>{t('common.status')}</TableHead>
-            <TableHead>{t('common.actions')}</TableHead>
+            <TableHead className={isRtl ? 'text-right' : 'text-left'}>{t('common.name')}</TableHead>
+            <TableHead className={isRtl ? 'text-right' : 'text-left'}>{t('common.email')}</TableHead>
+            <TableHead className={isRtl ? 'text-right' : 'text-left'}>{t('common.role')}</TableHead>
+            <TableHead className={isRtl ? 'text-right' : 'text-left'}>{t('common.status')}</TableHead>
+            <TableHead className={isRtl ? 'text-right' : 'text-left'}>{t('common.actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

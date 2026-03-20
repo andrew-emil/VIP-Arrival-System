@@ -10,6 +10,7 @@ import { Role } from '@prisma/client';
 @ApiTags('Events')
 @Controller('events')
 @UseGuards(RolesGuard)
+@Roles(Role.ADMIN)
 export class EventsController {
   constructor(private readonly eventsService: EventsService) { }
 

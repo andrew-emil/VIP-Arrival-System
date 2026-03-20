@@ -54,7 +54,7 @@ export const router = createBrowserRouter([
         element: <CamerasPage />,
     },
     {
-        path: "/devices",
+        path: "/account-devices",
         loader: requireRole(['admin', 'operator']),
         element: <AccountDevicePage />,
     },

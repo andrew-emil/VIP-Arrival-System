@@ -5,7 +5,7 @@ export async function generateRealtimeTicket() {
         const { data } = await api.post<{ ticket: string }>("/realtime/ticket");
         return data.ticket;
     } catch (error) {
-        throw error?.response?.data?.message || error.message;
+        throw error?.response?.data || error;
     }
 }
 

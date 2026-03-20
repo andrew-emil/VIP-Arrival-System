@@ -6,7 +6,7 @@ export async function createCamera(dto: CreateCameraDto) {
         const { data } = await api.post<ICamera>("/camera", dto);
         return data;
     } catch (error) {
-        throw error?.response?.data?.message || error.message;
+        throw error?.response?.data || error;
     }
 }
 
@@ -15,7 +15,7 @@ export async function updateCamera(id: string, dto: UpdateCameraDto) {
         const { data } = await api.patch<ICamera>(`/camera/${id}`, dto);
         return data;
     } catch (error) {
-        throw error?.response?.data?.message || error.message;
+        throw error?.response?.data || error;
     }
 }
 
@@ -23,6 +23,6 @@ export async function deleteCamera(id: string) {
     try {
         await api.delete(`/camera/${id}`);
     } catch (error) {
-        throw error?.response?.data?.message || error.message;
+        throw error?.response?.data || error;
     }
 }

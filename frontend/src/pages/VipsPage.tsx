@@ -7,8 +7,8 @@ import { toast } from 'sonner';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { VipsTable } from '@/components/VipsTable';
-import { VipsDialog } from '@/components/VipsDialog';
+import { VipsTable } from '@/components/vip/VipsTable';
+import { VipsDialog } from '@/components/vip/VipsDialog';
 import { getVips } from '@/services/vip/query';
 import { deleteVip } from '@/services/vip/mutation';
 import { VipQueryKeys } from '@/services/vip/queryKeys';
@@ -21,10 +21,12 @@ export default function VipsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<IVip | null>(null);
 
-  const { data: vips = [], isLoading } = useQuery({
+  const { data: vipsData = [], isLoading } = useQuery({
     queryKey: VipQueryKeys.all(),
     queryFn: () => getVips(),
   });
+
+  const vips = vipsData as unknown as IVip[];
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteVip(id),
@@ -37,12 +39,15 @@ export default function VipsPage() {
     }
   });
 
-  const filtered = vips.filter(
-    (v) =>
-      v.name.toLowerCase().includes(search.toLowerCase()) ||
-      (v as any).plateNumbers?.some((p: string) => p.toLowerCase().includes(search.toLowerCase())) ||
-      (v as any).plate?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = vips.filter((v) => {
+    const vip = v as unknown as { name: string; plateNumbers?: string[]; plate?: string; plateNormalized?: string };
+    return (
+      vip.name?.toLowerCase().includes(search.toLowerCase()) ||
+      vip.plateNumbers?.some((p) => p.toLowerCase().includes(search.toLowerCase())) ||
+      vip.plate?.toLowerCase().includes(search.toLowerCase()) ||
+      vip.plateNormalized?.toLowerCase().includes(search.toLowerCase())
+    );
+  });
 
   const openAdd = () => {
     setEditing(null);

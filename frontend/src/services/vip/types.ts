@@ -10,15 +10,23 @@ export interface IVip {
 }
 
 export interface CreateVipDto {
-    name: string;
     plate?: string
+    name: string;
 }
 
-export interface CreateVipResponse {
+export interface MutationVipResponse {
     id: string;
     name: string;
     plate: string;
     retroMatchedEvents: number;
+}
+
+export interface UpdateVipDto extends CreateVipDto {
+    company?: string;
+    protocolLevel?: string;
+    notes?: string;
+    photoUrl?: string;
+    plateNumbers?: string[];
 }
 
 export interface GetAllVipsResponse {

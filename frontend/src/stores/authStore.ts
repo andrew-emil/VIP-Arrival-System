@@ -1,4 +1,4 @@
-import { ILoginResponse } from '@/services/auth';
+import { ILoginResponse, logout as apiLogout } from '@/services/auth';
 import { Role } from '@/services/users';
 import { create } from 'zustand';
 
@@ -7,16 +7,16 @@ interface AuthState {
   user: ILoginResponse | null;
   isAuthenticated: boolean;
   login: (user: ILoginResponse) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   hasRole: (roles: Role[]) => boolean;
 }
 
 const getStoredUser = (): ILoginResponse | null => {
   try {
-    const raw = localStorage.getItem('user');
+    const raw = sessionStorage.getItem('user');
     return raw ? JSON.parse(raw) : null;
   } catch {
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('user');
     return null;
   }
 };
@@ -27,12 +27,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   user: storedUser,
   isAuthenticated: !!storedUser,
   login: (user) => {
-    localStorage.setItem('user', JSON.stringify(user));
+    sessionStorage.setItem('user', JSON.stringify(user));
     set({ user, isAuthenticated: true });
   },
-  logout: () => {
-    localStorage.removeItem('user');
-    set({ user: null, isAuthenticated: false });
+  logout: async () => {
+    try {
+      await apiLogout();
+    } catch (error) {
+      console.error('Logout API error:', error);
+    } finally {
+      sessionStorage.removeItem('user');
+      set({ user: null, isAuthenticated: false });
+    }
   },
   hasRole: (roles) => {
     const { user } = get();

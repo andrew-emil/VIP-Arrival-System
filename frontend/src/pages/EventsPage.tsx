@@ -5,8 +5,8 @@ import { Loader2, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { EventCard } from '@/components/EventCard';
-import { EventDialog } from '@/components/EventDialog';
+import { EventCard } from '@/components/event/EventCard';
+import { EventDialog } from '@/components/event/EventDialog';
 import { updateEvent } from '@/services/events/mutation';
 import { getEvents } from '@/services/events/query';
 import { EventsQueryKeys } from '@/services/events/queryKeys';

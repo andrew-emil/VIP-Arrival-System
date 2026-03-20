@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
-import { PrismaModule } from 'src/core/prisma/prisma.module';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { HashingModule } from 'src/core/hashing/hashing.module';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
 
 @Module({
     imports: [
-        PrismaModule,
+        HashingModule,
         JwtModule.registerAsync({
             inject: [ConfigService],
             global: true,

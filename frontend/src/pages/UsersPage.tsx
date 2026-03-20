@@ -5,8 +5,8 @@ import { Loader2, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { UserDialog } from '@/components/UserDialog';
-import { UserTable } from '@/components/UserTable';
+import { UserDialog } from '@/components/user/UserDialog';
+import { UserTable } from '@/components/user/UserTable';
 import { getUsers } from '@/services/users/query';
 import { UsersQueryKeys } from '@/services/users/queryKeys';
 import { IUser } from '@/services/users/types';
@@ -17,7 +17,7 @@ export default function UsersPage() {
   const [editing, setEditing] = useState<IUser | null>(null);
 
   const { data: users = [], isLoading } = useQuery({
-    queryKey: UsersQueryKeys.all(),
+    queryKey: UsersQueryKeys.findAll(),
     queryFn: getUsers,
   });
 

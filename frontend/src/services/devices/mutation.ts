@@ -6,7 +6,7 @@ export async function createDevice(dto: CreateDeviceDto) {
         const { data } = await api.post<IDevice>('/devices', dto);
         return data;
     } catch (error) {
-        throw error?.response?.data?.message || error.message;
+        throw error?.response?.data || error;
     }
 }
 
@@ -15,7 +15,7 @@ export async function updateDevice(id: string, dto: UpdateDeviceDto) {
         const { data } = await api.patch<IDevice>(`/devices/${id}`, dto);
         return data;
     } catch (error) {
-        throw error?.response?.data?.message || error.message;
+        throw error?.response?.data || error;
     }
 }
 
@@ -23,7 +23,7 @@ export async function deleteDevice(id: string) {
     try {
         await api.delete(`/devices/${id}`);
     } catch (error) {
-        throw error?.response?.data?.message || error.message;
+        throw error?.response?.data || error;
     }
 }
 
@@ -32,7 +32,7 @@ export async function deactivateDevice(id: string) {
         const { data } = await api.patch<IDevice>(`/devices/${id}/deactivate`);
         return data;
     } catch (error) {
-        throw error?.response?.data?.message || error.message;
+        throw error?.response?.data || error;
     }
 }
 
@@ -41,6 +41,6 @@ export async function regeneratePassword(id: string) {
         const { data } = await api.patch<IDevice>(`/devices/${id}/regenerate-password`);
         return data;
     } catch (error) {
-        throw error?.response?.data?.message || error.message;
+        throw error?.response?.data || error;
     }
 }

@@ -28,7 +28,7 @@ export function EventCard({ event, onClick, onToggleStatus, isToggling }: EventC
           <CardTitle className="text-base">{event.name}</CardTitle>
           <div className="flex items-center gap-2 mt-2">
             <Badge variant="outline" className={statusColors[event.status as string] || statusColors.draft}>
-              {t(`events.${event.status}`)}
+              {t(`events.${event.status.toLocaleLowerCase()}`)}
             </Badge>
             <span className="text-xs text-muted-foreground">
               {((event as IEvent & { vipIds?: string[] }).vipIds?.length || 0)} VIPs
@@ -39,9 +39,9 @@ export function EventCard({ event, onClick, onToggleStatus, isToggling }: EventC
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          onClick={(e) => { 
-            e.stopPropagation(); 
-            onToggleStatus(event); 
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleStatus(event);
           }}
           disabled={isToggling}
         >

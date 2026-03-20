@@ -25,16 +25,15 @@ import {
 import { Loader2, MoreHorizontal, Eye, Edit, Trash } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { useEventStore } from '@/stores/eventStore';
 
-import { AddCameraDialog } from '@/components/AddCameraDialog';
-import { EditCameraDialog } from '@/components/EditCameraDialog';
-import { CameraDetailsDialog } from '@/components/CameraDetailsDialog';
+import { AddCameraDialog } from '@/components/camera/AddCameraDialog';
+import { EditCameraDialog } from '@/components/camera/EditCameraDialog';
+import { CameraDetailsDialog } from '@/components/camera/CameraDetailsDialog';
 
 export default function CamerasPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
-  const events = useEventStore((s) => s.events);
+  const isRtl = i18n.language === 'ar';
 
   const [editingCamera, setEditingCamera] = useState<ICamera | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -58,7 +57,7 @@ export default function CamerasPage() {
     mutationFn: deleteCamera,
     onSuccess: () => {
       toast.success(t('cameras.deleteSuccess'));
-      queryClient.invalidateQueries({ queryKey: CameraQueryKeys.all() });
+      queryClient.invalidateQueries({ queryKey: CameraQueryKeys.findAll() });
     },
     onError: (error: Error) => {
       toast.error(error?.message || t('common.error', 'An error occurred'));
@@ -97,31 +96,29 @@ export default function CamerasPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{t('common.name')}</TableHead>
-                <TableHead>{t('cameras.ipAddress')}</TableHead>
-                <TableHead>{t('cameras.cameraRole')}</TableHead>
-                <TableHead>{t('events.event')}</TableHead>
-                <TableHead>{t('cameras.health')}</TableHead>
+                <TableHead className={isRtl ? 'text-right' : 'text-left'}>{t('common.name')}</TableHead>
+                <TableHead className={isRtl ? 'text-right' : 'text-left'}>{t('cameras.ipAddress')}</TableHead>
+                <TableHead className={isRtl ? 'text-right' : 'text-left'}>{t('cameras.cameraRole')}</TableHead>
+                <TableHead className={isRtl ? 'text-right' : 'text-left'}>{t('cameras.health')}</TableHead>
                 <TableHead className="w-[80px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
+                  <TableCell colSpan={5} className="text-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
                   </TableCell>
                 </TableRow>
               ) : cameras.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                     {t('common.noData')}
                   </TableCell>
                 </TableRow>
               ) : cameras.map((camera) => {
                 const health = healthData.find(h => h.id === camera.id);
                 const isOnline = health?.isOnline ?? false;
-                const eventName = events.find(e => e.id === camera.eventId)?.name || camera.eventId;
 
                 return (
                   <TableRow key={camera.id}>
@@ -134,9 +131,7 @@ export default function CamerasPage() {
                         {t(`cameras.${camera.role.toLowerCase()}`)}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      <span className="text-sm truncate max-w-[150px] inline-block">{eventName}</span>
-                    </TableCell>
+
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <div className={cn("w-2 h-2 rounded-full", isOnline ? "bg-alert-arrived" : "bg-alert-error")} />

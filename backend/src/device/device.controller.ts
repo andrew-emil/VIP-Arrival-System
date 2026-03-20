@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { DeviceService } from './device.service';
 import { CreateDeviceDto } from './dto/create-device.dto';
@@ -7,8 +7,8 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Role } from '@prisma/client';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 
-@ApiTags('Device')
-@Controller('device')
+@ApiTags('Devices')
+@Controller('devices')
 @UseGuards(RolesGuard)
 @Roles(Role.ADMIN)
 export class DeviceController {
@@ -61,5 +61,14 @@ export class DeviceController {
   @ApiResponse({ status: 200, description: "Password regenerated successfully" })
   regeneratePassword(@Param("id") id: string) {
     return this.deviceService.regenerateDevicePassword(id);
+  }
+
+  @Delete(":id")
+  @ApiOperation({ summary: "Delete a device account" })
+  @ApiParam({ name: "id", description: "Device account UUID" })
+  @ApiResponse({ status: 200, description: "Device account deleted successfully" })
+  @ApiResponse({ status: 404, description: "Device not found" })
+  remove(@Param("id") id: string) {
+    return this.deviceService.deleteDevice(id);
   }
 }

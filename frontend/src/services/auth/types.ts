@@ -12,3 +12,14 @@ export interface ILoginResponse {
     role: Role
 }
 
+export interface IDeviceLoginDto {
+    deviceId: string;
+    password: string;
+}
+
+export interface IDeviceLoginResponse {
+    deviceId: string;
+    name: string;
+    cameraId: string;
+    cameraLabel: string;
+}
