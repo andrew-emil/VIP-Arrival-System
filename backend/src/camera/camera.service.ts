@@ -2,10 +2,16 @@ import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/co
 import { PrismaService } from 'src/core/prisma/prisma.service';
 import { CreateCameraDto } from './dto/create-camera.dto';
 import { UpdateCameraDto } from './dto/update-camera.dto';
+import { DeviceService } from 'src/device/device.service';
+import { FeedService } from 'src/feed/feed.service';
 
 @Injectable()
 export class CameraService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly deviceService: DeviceService,
+        private readonly feedService: FeedService
+    ) { }
 
     async createCamera(dto: CreateCameraDto) {
         return this.prisma.camera.create({
@@ -47,7 +53,24 @@ export class CameraService {
     }
 
     async deleteCamera(id: string) {
-        await this.findOneCamera(id);
+        await this.findOneCamera(id)
+        const [devices, feed] = await Promise.all([
+            this.deviceService.findDeviceFromCamera(id),
+            this.feedService.findFeedByCamera(id)
+        ])
+
+        if (devices.length > 0) {
+            for (const device of devices) {
+                await this.deviceService.deleteDevice(device.id)
+            }
+        }
+
+        if (feed.length > 0) {
+            for (const plate of feed) {
+                await this.feedService.deleteFeed(plate.id)
+            }
+        }
+
         return this.prisma.camera.delete({
             where: { id },
         });

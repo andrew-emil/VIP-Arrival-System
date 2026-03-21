@@ -12,9 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { createUser, updateUser } from '@/services/users/mutation';
-import { UsersQueryKeys } from '@/services/users/queryKeys';
-import { CreateUserDto, IUser, Role, UpdateUserDto } from '@/services/users/types';
+import { createUser, CreateUserDto, IUser, Role, updateUser, UpdateUserDto, UsersQueryKeys } from '@/services/users';
 
 interface UserDialogProps {
   open: boolean;
@@ -70,7 +68,7 @@ export function UserDialog({ open, onOpenChange, editing, onClose }: UserDialogP
     mutationFn: (dto: CreateUserDto) => createUser(dto),
     onSuccess: () => {
       toast.success(t('users.createSuccess', 'User created successfully'));
-      queryClient.invalidateQueries({ queryKey: UsersQueryKeys.findAll() });
+      queryClient.invalidateQueries({ queryKey: UsersQueryKeys.all() });
       onClose();
     },
     onError: (error: Error) => {
@@ -82,7 +80,7 @@ export function UserDialog({ open, onOpenChange, editing, onClose }: UserDialogP
     mutationFn: ({ id, dto }: { id: string; dto: UpdateUserDto }) => updateUser(id, dto),
     onSuccess: () => {
       toast.success(t('users.updateSuccess', 'User updated successfully'));
-      queryClient.invalidateQueries({ queryKey: UsersQueryKeys.findAll() });
+      queryClient.invalidateQueries({ queryKey: UsersQueryKeys.all() });
       onClose();
     },
     onError: (error: Error) => {
@@ -175,6 +173,7 @@ export function UserDialog({ open, onOpenChange, editing, onClose }: UserDialogP
                       <SelectItem value={Role.ADMIN}>{t('users.admin')}</SelectItem>
                       <SelectItem value={Role.OPERATOR}>{t('users.operator')}</SelectItem>
                       <SelectItem value={Role.MANAGER}>{t('users.manager')}</SelectItem>
+                      <SelectItem value={Role.OBSERVER}>{t('users.observer')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

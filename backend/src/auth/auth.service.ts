@@ -1,6 +1,8 @@
-import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { HashingService } from 'src/core/hashing/hashing.service';
 import { PrismaService } from 'src/core/prisma/prisma.service';
+import { DeviceService } from 'src/device/device.service';
+import { UsersService } from 'src/users/users.service';
 import { LoginDto } from './dto/login.dto';
 
 @Injectable()
@@ -8,16 +10,12 @@ export class AuthService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly hashingService: HashingService,
+        private readonly usersService: UsersService,
+        private readonly deviceService: DeviceService,
     ) { }
 
     async login(dto: LoginDto) {
-        const user = await this.prisma.user.findUnique({
-            where: { email: dto.email },
-        });
-
-        if (!user || !user.passwordHash || !user.isActive) {
-            throw new UnauthorizedException('Invalid Email or password');
-        }
+        const user = await this.usersService.findByEmail(dto.email);
 
         const isMatch = await this.hashingService.comparePassword(dto.password, user.passwordHash);
         if (!isMatch) {
@@ -33,23 +31,12 @@ export class AuthService {
     }
 
     async getProfile(userId: string) {
-        const user = await this.prisma.user.findUnique({
-            where: { id: userId },
-            select: { id: true, name: true, email: true, role: true, isActive: true, createdAt: true },
-        });
-
-        if (!user) throw new UnauthorizedException('Session invalid');
-        return user;
+        return this.usersService.findOne(userId);
     }
 
     async deviceLogin(deviceId: string, password: string) {
-        const device = await this.prisma.deviceAccount.findUnique({
-            where: { deviceId },
-            include: { camera: true },
-        });
-
-        if (!device) throw new UnauthorizedException('Unknown device');
-        if (!device.isActive) throw new ForbiddenException('Device is deactivated');
+        const device = await this.deviceService.findOneDevice(deviceId);
+        if (!device.isActive) throw new UnauthorizedException('Invalid credentials');
 
         const passwordToCheck = device.temporaryPassword;
         if (!passwordToCheck) throw new UnauthorizedException('Invalid credentials');

@@ -11,11 +11,18 @@ import { Car, CheckCircle, Radio, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-export default function AdminDashboard() {
+export default function OperationsDashboard() {
   const { t } = useTranslation();
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const alerts = useAlertStore((s) => s.alerts);
   const setAlerts = useAlertStore((s) => s.setAlerts);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    const unsub = useAlertStore.persist.onFinishHydration(() => setIsHydrated(true));
+    if (useAlertStore.persist.hasHydrated()) setIsHydrated(true);
+    return unsub;
+  }, []);
 
   const { data: sessions, isSuccess } = useQuery({
     queryKey: SessionsQueryKeys.all(),
@@ -30,17 +37,7 @@ export default function AdminDashboard() {
         vipName: session.vip?.name || 'Unknown VIP',
         plateNumber: (session.vip as unknown as { plate?: string })?.plate || 'N/A',
         protocolLevel: (session.vip?.protocolLevel as Alert['protocolLevel']) || 'C',
-        cameraName: 'System Camera', // Default mapping
-        cameraId: 'sys-cam-01',
-        status: (session.status === 'APPROACHING'
-          ? RealtimeEvent.ALERT_CREATED
-          : session.status === 'ARRIVED'
-            ? RealtimeEvent.VIP_ARRIVED
-            : session.status === 'CONFIRMED'
-              ? RealtimeEvent.VIP_CONFIRMED
-              : session.status === 'REJECTED'
-                ? RealtimeEvent.VIP_REJECTED
-                : session.status as unknown as Alert['status']) || RealtimeEvent.ALERT_CREATED,
+        status: session.status,
         timestamp: (session.approachAt || session.arrivedAt || session.createdAt || new Date()).toString(),
         company: session.vip?.company || 'N/A',
         vipPhoto: session.vip?.photoUrl || undefined,
@@ -51,10 +48,12 @@ export default function AdminDashboard() {
 
   useSSE();
 
-  const approaching = alerts.filter((a) => a.status === RealtimeEvent.ALERT_CREATED).length;
-  const arrived = alerts.filter((a) => a.status === RealtimeEvent.VIP_ARRIVED).length;
-  const confirmed = alerts.filter((a) => a.status === RealtimeEvent.VIP_CONFIRMED).length;
+  const approaching = alerts.filter((a) => a.status === RealtimeEvent.ALERT_CREATED || a.status === 'APPROACHING').length;
+  const arrived = alerts.filter((a) => a.status === RealtimeEvent.VIP_ARRIVED || a.status === 'ARRIVED').length;
+  const confirmed = alerts.filter((a) => a.status === RealtimeEvent.VIP_CONFIRMED || a.status === 'CONFIRMED').length;
   const active = approaching + arrived;
+
+  if (!isHydrated) return null;
 
   const metrics = [
     { label: t('dashboard.activeSessions'), value: active, icon: Users, color: 'text-primary' },

@@ -32,14 +32,14 @@ export function AppSidebar({ side = 'left' }: AppSidebarProps) {
   const isRtl = i18n.language === 'ar';
 
   const mainItems = [
-    { title: t('nav.dashboard'), url: role === Role.ADMIN ? '/admin/dashboard' : role === Role.OPERATOR ? '/operator/dashboard' : '/manager/monitor', icon: VAS_ICONS.dashboard, roles: [Role.ADMIN, Role.OPERATOR, Role.MANAGER] },
+    { title: t('nav.dashboard'), url: '/dashboard', icon: VAS_ICONS.dashboard, roles: [Role.ADMIN, Role.OPERATOR] },
+    { title: t('nav.monitor'), url: '/manager/monitor', icon: VAS_ICONS.monitor, roles: [Role.MANAGER, Role.OBSERVER] },
     { title: t('nav.vips'), url: '/vips', icon: VAS_ICONS.vips, roles: [Role.ADMIN, Role.OPERATOR] },
     { title: t('nav.events'), url: '/events', icon: Calendar, roles: [Role.ADMIN] },
     { title: t('nav.cameras'), url: '/cameras', icon: VAS_ICONS.cameras, roles: [Role.ADMIN, Role.OPERATOR] },
     { title: t('nav.users'), url: '/users', icon: VAS_ICONS.users, roles: [Role.ADMIN] },
     { title: t('nav.accountDevices'), url: '/account-devices', icon: VAS_ICONS.device, roles: [Role.ADMIN] },
-    { title: t('nav.monitor'), url: '/manager/monitor', icon: VAS_ICONS.monitor, roles: [Role.MANAGER] },
-    { title: t('settings.title'), url: '/settings', icon: VAS_ICONS.settings, roles: [Role.ADMIN, Role.OPERATOR, Role.MANAGER, Role.GATE_GUARD] },
+    { title: t('settings.title'), url: '/settings', icon: VAS_ICONS.settings, roles: [Role.ADMIN, Role.OPERATOR, Role.MANAGER, Role.OBSERVER, Role.GATE_GUARD] },
   ].filter((item) => role && item.roles.includes(role));
 
 
@@ -61,7 +61,7 @@ export function AppSidebar({ side = 'left' }: AppSidebarProps) {
             <div className="flex items-center gap-4" dir="ltr">
               <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-white font-black text-2xl shadow-[0_0_30px_rgba(147,51,234,0.4)] shrink-0">V</div>
               <div className="text-left items-start flex flex-col">
-                <span className="text-xl font-black text-white tracking-tighter leading-none block">VAS COMMAND</span>
+                <span className="text-xl font-black text-foreground tracking-tighter leading-none block">VAS COMMAND</span>
                 <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1 block">PLATFORM_v2.5</span>
               </div>
             </div>

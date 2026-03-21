@@ -1,16 +1,16 @@
-import { useTranslation } from 'react-i18next';
 import { ICamera, ICameraHealth } from '@/services/camera';
 import { useEventStore } from '@/stores/eventStore';
+import { useTranslation } from 'react-i18next';
 
+import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Wifi, Disc, MapPin, Globe, Hash, Clock } from 'lucide-react';
+import { Clock, Disc, Globe, Hash, MapPin } from 'lucide-react';
 
 interface CameraDetailsDialogProps {
   camera: ICamera | null;

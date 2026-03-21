@@ -1,7 +1,7 @@
 import {
   ConflictException,
   Injectable,
-  NotFoundException,
+  UnauthorizedException
 } from '@nestjs/common';
 import { HashingService } from 'src/core/hashing/hashing.service';
 import { PrismaService } from 'src/core/prisma/prisma.service';
@@ -45,13 +45,13 @@ export class UsersService {
       },
     });
 
-    if (createUserDto.permissions?.length) {
-      await this.assignPermissions(
-        createdUser.id,
-        createUserDto.permissions,
-        adminName,
-      );
-    }
+    // if (createUserDto.permissions?.length) {
+    //   await this.assignPermissions(
+    //     createdUser.id,
+    //     createUserDto.permissions,
+    //     adminName,
+    //   );
+    // }
 
     return createdUser;
   }
@@ -82,26 +82,10 @@ export class UsersService {
   async findOne(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        isActive: true,
-        createdAt: true,
-        permissions: {
-          select: {
-            id: true,
-            permission: true,
-            grantedBy: true,
-            eventId: true,
-            createdAt: true,
-          },
-        },
-      },
+      select: { id: true, name: true, email: true, role: true, isActive: true, createdAt: true },
     });
+    if (!user) throw new UnauthorizedException('Session invalid');
 
-    if (!user) throw new NotFoundException(`User with id "${id}" not found`);
     return user;
   }
 
@@ -126,33 +110,39 @@ export class UsersService {
     });
   }
 
-  async assignPermissions(
-    userId: string,
-    permissions: string[],
-    adminName: string,
-  ) {
-    if (!permissions?.length) return;
+  // async assignPermissions(
+  //   userId: string,
+  //   permissions: string[],
+  //   adminName: string,
+  // ) {
+  //   if (!permissions?.length) return;
 
-    const createdPermissions = await this.prisma.userPermission.createMany({
-      data: permissions.map((permission) => ({
-        permission,
-        userId,
-        grantedBy: adminName,
-      })),
-    });
+  //   const createdPermissions = await this.prisma.userPermission.createMany({
+  //     data: permissions.map((permission) => ({
+  //       permission,
+  //       userId,
+  //       grantedBy: adminName,
+  //     })),
+  //   });
 
-    return createdPermissions;
-  }
+  //   return createdPermissions;
+  // }
 
   async remove(id: string) {
-    const user = await this.findOne(id); // throws 404 if not found
-    if (user.permissions.length > 0) {
-      await this.removePermissions(user.id)
-    }
+    await this.findOne(id); // throws 404 if not found
+
     return this.prisma.user.delete({ where: { id } });
   }
 
   async removePermissions(id: string) {
     return this.prisma.userPermission.deleteMany({ where: { userId: id } });
+  }
+
+  async findByEmail(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user || !user.passwordHash || !user.isActive)
+      throw new UnauthorizedException('Invalid Email or password');
+
+    return user;
   }
 }

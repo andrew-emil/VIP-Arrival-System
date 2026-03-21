@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
+import { CameraQueryKeys, ICamera, updateCamera } from '@/services/camera';
+import { useEventStore } from '@/stores/eventStore';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { updateCamera, CameraQueryKeys, ICamera } from '@/services/camera';
-import { useEventStore } from '@/stores/eventStore';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -80,7 +80,7 @@ export function EditCameraDialog({ camera, isOpen, onOpenChange }: EditCameraDia
   }, [camera, isOpen, form]);
 
   const updateMutation = useMutation({
-    mutationFn: (values: UpdateCameraFormValues) => updateCamera(camera!.id, { id: camera!.id, ...values }),
+    mutationFn: (values: UpdateCameraFormValues) => updateCamera(camera!.id, values),
     onSuccess: () => {
       toast.success(t('cameras.updateSuccess'));
       queryClient.invalidateQueries({ queryKey: CameraQueryKeys.all() });

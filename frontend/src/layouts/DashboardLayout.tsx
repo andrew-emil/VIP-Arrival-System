@@ -2,18 +2,18 @@ import { AppSidebar } from '@/components/AppSidebar';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useAuthStore } from '@/stores/authStore';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router';
 
 const routeTitleKeys: Record<string, string> = {
-  '/admin/dashboard': 'nav.dashboard',
-  '/operator/dashboard': 'nav.dashboard',
+  '/dashboard': 'nav.dashboard',
   '/manager/monitor': 'nav.monitor',
   '/vips': 'nav.vips',
   '/events': 'nav.events',
   '/cameras': 'nav.cameras',
   '/users': 'nav.users',
+  '/account-devices': 'nav.accountDevices',
   '/settings': 'settings.title',
 };
 

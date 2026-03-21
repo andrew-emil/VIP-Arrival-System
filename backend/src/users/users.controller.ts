@@ -80,22 +80,21 @@ export class UsersController {
   }
 
   // ─── Assign permissions ───────────────────────────────────────────────────────
-
-  @Post(':id/permissions')
-  @HttpCode(200)
-  @ApiOperation({ summary: 'Assign permissions to a user (admin only)' })
-  @ApiParam({ name: 'id', description: 'User UUID' })
-  @ApiBody({ schema: { example: { permissions: ['VIEW_REPORTS', 'MANAGE_VIPS'] } } })
-  @ApiResponse({ status: 200, description: 'Permissions assigned' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  assignPermissions(
-    @Param('id') id: string,
-    @Body('permissions') permissions: string[],
-    @Session() session: Record<string, any>,
-  ) {
-    const adminName: string = session['userName'] ?? session['userId'];
-    return this.usersService.assignPermissions(id, permissions, adminName);
-  }
+  // @Post(':id/permissions')
+  // @HttpCode(200)
+  // @ApiOperation({ summary: 'Assign permissions to a user (admin only)' })
+  // @ApiParam({ name: 'id', description: 'User UUID' })
+  // @ApiBody({ schema: { example: { permissions: ['VIEW_REPORTS', 'MANAGE_VIPS'] } } })
+  // @ApiResponse({ status: 200, description: 'Permissions assigned' })
+  // @ApiResponse({ status: 404, description: 'User not found' })
+  // assignPermissions(
+  //   @Param('id') id: string,
+  //   @Body('permissions') permissions: string[],
+  //   @Session() session: Record<string, any>,
+  // ) {
+  //   const adminName: string = session['userName'] ?? session['userId'];
+  //   return this.usersService.assignPermissions(id, permissions, adminName);
+  // }
 
   // ─── Delete user ──────────────────────────────────────────────────────────────
 

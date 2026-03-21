@@ -48,6 +48,7 @@ export function DeviceLoginForm() {
         email: `device-${data.deviceId}@vas.internal`,
         role: Role.GATE_GUARD,
       });
+      console.log(data)
 
       navigate('/gate');
     },
@@ -56,7 +57,7 @@ export function DeviceLoginForm() {
     }
   });
 
-  const onSubmit = async (formData: DeviceLoginFormData) => {
+  const onSubmit = (formData: DeviceLoginFormData) => {
     loginMutation.mutate(formData);
   };
 
@@ -72,7 +73,7 @@ export function DeviceLoginForm() {
               <FormControl>
                 <Input
                   type="text"
-                  placeholder="DEV-12345"
+                  placeholder="9fb5b28a-d9af-41d..."
                   {...field}
                 />
               </FormControl>

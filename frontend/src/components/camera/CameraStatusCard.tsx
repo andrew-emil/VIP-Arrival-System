@@ -2,7 +2,7 @@ import { Camera } from '@/types';
 import { Card } from '@/components/ui/card';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { cn, getTimeAgo } from '@/lib/utils';
 
 interface CameraStatusCardProps {
   camera: Camera;
@@ -38,10 +38,3 @@ export function CameraStatusCard({ camera }: CameraStatusCardProps) {
   );
 }
 
-function getTimeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'Just now';
-  if (mins < 60) return `${mins}m ago`;
-  return `${Math.floor(mins / 60)}h ago`;
-}

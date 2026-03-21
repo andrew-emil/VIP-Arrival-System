@@ -22,6 +22,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Loader2, MoreHorizontal, Eye, Edit, Trash } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -37,6 +47,7 @@ export default function CamerasPage() {
 
   const [editingCamera, setEditingCamera] = useState<ICamera | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   const [viewingCamera, setViewingCamera] = useState<ICamera | null>(null);
   const [viewingHealth, setViewingHealth] = useState<ICameraHealth | null>(null);
@@ -58,16 +69,16 @@ export default function CamerasPage() {
     onSuccess: () => {
       toast.success(t('cameras.deleteSuccess'));
       queryClient.invalidateQueries({ queryKey: CameraQueryKeys.findAll() });
+      setDeleting(null);
     },
     onError: (error: Error) => {
       toast.error(error?.message || t('common.error', 'An error occurred'));
+      setDeleting(null);
     }
   });
 
   const handleDelete = (id: string) => {
-    if (window.confirm(t('cameras.confirmDelete'))) {
-      deleteMutation.mutate(id);
-    }
+    setDeleting(id);
   };
 
   const handleEdit = (camera: ICamera) => {
@@ -188,6 +199,31 @@ export default function CamerasPage() {
         isOpen={isDetailsDialogOpen} 
         onOpenChange={setIsDetailsDialogOpen} 
       />
+
+      <AlertDialog open={!!deleting} onOpenChange={(open) => !open && setDeleting(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('common.delete', 'Delete')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('cameras.confirmDelete', 'Are you sure you want to delete this camera?')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                if (deleting) deleteMutation.mutate(deleting);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              {t('common.confirm', 'Confirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }

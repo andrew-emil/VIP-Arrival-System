@@ -2,17 +2,16 @@ import { createBrowserRouter } from "react-router";
 import { requireRole } from "./loaders/role.loader";
 import { rootLoader } from "./loaders/root.loader";
 import AccountDevicePage from "./pages/AccountDevicePage";
-import AdminDashboard from "./pages/AdminDashboard";
+import CamerasPage from "./pages/CamerasPage";
 import EventsPage from "./pages/EventsPage";
 import GatePage from "./pages/GatePage";
 import LoginPage from "./pages/LoginPage";
 import ManagerMonitor from "./pages/ManagerMonitor";
 import NotFound from "./pages/NotFound";
-import OperatorDashboard from "./pages/OperatorDashboard";
+import OperationsDashboard from "./pages/OperationsDashboard";
 import SettingsPage from "./pages/SettingsPage";
 import UsersPage from "./pages/UsersPage";
 import VipsPage from "./pages/VipsPage";
-import CamerasPage from "./pages/CamerasPage";
 
 export const router = createBrowserRouter([
     {
@@ -24,18 +23,13 @@ export const router = createBrowserRouter([
         loader: rootLoader,
     },
     {
-        path: "/admin/dashboard",
-        loader: requireRole(['admin']),
-        element: <AdminDashboard />,
-    },
-    {
-        path: "/operator/dashboard",
+        path: "/dashboard",
         loader: requireRole(['admin', 'operator']),
-        element: <OperatorDashboard />,
+        element: <OperationsDashboard />,
     },
     {
         path: "/manager/monitor",
-        loader: requireRole(['admin', 'manager']),
+        loader: requireRole(['manager', 'observer']),
         element: <ManagerMonitor />,
     },
     {
@@ -55,7 +49,7 @@ export const router = createBrowserRouter([
     },
     {
         path: "/account-devices",
-        loader: requireRole(['admin', 'operator']),
+        loader: requireRole(['admin']),
         element: <AccountDevicePage />,
     },
     {
@@ -65,12 +59,12 @@ export const router = createBrowserRouter([
     },
     {
         path: "/gate",
-        loader: requireRole(['admin', 'gate']),
+        loader: requireRole(['gate_guard']),
         element: <GatePage />,
     },
     {
         path: "/settings",
-        loader: requireRole(['admin', 'operator', 'manager', 'gate']),
+        loader: requireRole(['admin', 'operator', 'manager', 'observer', 'gate_guard']),
         element: <SettingsPage />,
     },
     {

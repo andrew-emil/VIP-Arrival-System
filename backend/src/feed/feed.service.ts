@@ -64,5 +64,17 @@ export class FeedService {
             nextSince,
         };
     }
+
+    async findFeedByCamera(cameraId: string) {
+        return this.prisma.plateEvent.findMany({
+            where: { cameraId }
+        })
+    }
+
+    async deleteFeed(id: string) {
+        return this.prisma.plateEvent.deleteMany({
+            where: { id }
+        })
+    }
 }
 

@@ -50,9 +50,10 @@ export function UserLoginForm() {
       });
 
       const redirectMap: Record<Role, string> = {
-        [Role.ADMIN]: '/admin/dashboard',
-        [Role.OPERATOR]: '/operator/dashboard',
+        [Role.ADMIN]: '/dashboard',
+        [Role.OPERATOR]: '/dashboard',
         [Role.MANAGER]: '/manager/monitor',
+        [Role.OBSERVER]: '/manager/monitor',
         [Role.GATE_GUARD]: '/gate',
       };
       navigate(redirectMap[data.role] || '/');

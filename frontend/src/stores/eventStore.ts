@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { VASEvent } from '@/types';
-import { mockEvents } from '@/data/mock';
 
 interface EventState {
   events: VASEvent[];
@@ -11,7 +10,7 @@ interface EventState {
 }
 
 export const useEventStore = create<EventState>((set) => ({
-  events: [...mockEvents],
+  events: [],
   activeEventId: 'e1',
   addEvent: (event) => set((s) => ({ events: [...s.events, event] })),
   updateEvent: (id, data) =>

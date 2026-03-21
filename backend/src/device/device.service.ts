@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { randomBytes, randomUUID } from 'crypto';
 import { HashingService } from 'src/core/hashing/hashing.service';
 import { PrismaService } from 'src/core/prisma/prisma.service';
@@ -41,9 +41,17 @@ export class DeviceService {
       include: { camera: true },
     });
 
-    if (!device) throw new NotFoundException("Device not found");
+    if (!device) throw new UnauthorizedException('Unknown device');
 
     return device;
+  }
+
+  async findDeviceFromCamera(cameraId: string) {
+    return this.prisma.deviceAccount.findMany({
+      where: {
+        cameraId
+      }
+    })
   }
 
   async updateDevice(id: string, dto: UpdateDeviceDto) {

@@ -1,4 +1,4 @@
-import { Role } from "../users/types";
+import { Role } from "../users";
 
 export interface ILoginDto {
     email: string;

@@ -26,10 +26,10 @@ export function NotFound() {
 
         <div className="space-y-3">
           <h2 className="text-3xl font-black tracking-tight uppercase">
-            {t('page_not_found', 'Page Not Found')}
+            {t('notFound.title')}
           </h2>
           <p className="text-muted-foreground font-medium text-sm leading-relaxed px-4">
-            {t('page_not_found_desc', "The page you're looking for doesn't exist or has been moved to another universe.")}
+            {t('notFound.description')}
           </p>
         </div>
 
@@ -39,7 +39,7 @@ export function NotFound() {
             className="px-8 py-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/30 transition-all active:scale-95 flex items-center justify-center gap-2"
           >
             <Home className="w-4 h-4" />
-            {t('go_home', 'Go Home')}
+            {t('notFound.goHome')}
           </button>
 
           <button
@@ -47,7 +47,7 @@ export function NotFound() {
             className="px-8 py-4 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 border border-border/50 flex items-center justify-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            {t('go_back', 'Go Back')}
+            {t('notFound.goBack')}
           </button>
         </div>
       </div>

@@ -14,6 +14,7 @@ import redisConfig, { redisSchema } from './config/redis.config';
 import { CoreModule } from './core/core.module';
 import { HttpExceptionFilter } from './core/filters/http-exception.filter';
 import { RequestIdMiddleware } from './core/middlewares/request-id.middleware';
+import { DeviceModule } from './device/device.module';
 import { EventsModule } from './events/events.module';
 import { FeedModule } from './feed/feed.module';
 import { HealthModule } from './health/health.module';
@@ -21,10 +22,9 @@ import { IdempotencyModule } from './idempotency/idempotency.module';
 import { IngressModule } from './ingress/ingress.module';
 import { QueueModule } from './queue/queue.module';
 import { RealtimeModule } from './realtime/realtime.module';
+import { SessionsModule } from './sessions/sessions.module';
 import { UsersModule } from './users/users.module';
 import { VipModule } from './vip/vip.module';
-import { DeviceModule } from './device/device.module';
-import { SessionsModule } from './sessions/sessions.module';
 
 @Module({
   imports: [

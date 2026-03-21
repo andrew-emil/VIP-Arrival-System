@@ -4,7 +4,7 @@ export enum Role {
     ADMIN = "ADMIN",
     OPERATOR = "OPERATOR",
     MANAGER = "MANAGER",
-    // OBSERVER = "OBSERVER",
+    OBSERVER = "OBSERVER",
     GATE_GUARD = "GATE_GUARD"
 }
 

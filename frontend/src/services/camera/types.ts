@@ -18,9 +18,7 @@ export interface CreateCameraDto {
     eventId: string;
 }
 
-export interface UpdateCameraDto extends Partial<CreateCameraDto> {
-    id: string;
-}
+export type UpdateCameraDto = Partial<CreateCameraDto>
 
 export interface ICameraHealth {
     id: string;

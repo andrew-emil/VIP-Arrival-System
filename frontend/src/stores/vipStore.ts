@@ -1,16 +1,15 @@
 import { create } from 'zustand';
-import { VIP } from '@/types';
-import { mockVIPs } from '@/data/mock';
+import { IVip } from '@/services/vip';
 
 interface VipState {
-  vipList: VIP[];
-  addVip: (vip: VIP) => void;
-  updateVip: (id: string, data: Partial<VIP>) => void;
+  vipList: IVip[];
+  addVip: (vip: IVip) => void;
+  updateVip: (id: string, data: Partial<IVip>) => void;
   deleteVip: (id: string) => void;
 }
 
 export const useVipStore = create<VipState>((set) => ({
-  vipList: [...mockVIPs],
+  vipList: [],
   addVip: (vip) => set((s) => ({ vipList: [...s.vipList, vip] })),
   updateVip: (id, data) =>
     set((s) => ({ vipList: s.vipList.map((v) => (v.id === id ? { ...v, ...data } : v)) })),

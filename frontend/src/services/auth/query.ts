@@ -23,10 +23,18 @@ export async function getCurrentUser() {
     }
 
     // 2) Fallback to API (if session-based auth exists)
-    const user = await fetchCurrentUser()
-    if (user && "status" in user) {
-        return null
+    try {
+        const user = await fetchCurrentUser()
+        if (user && "status" in user) {
+            return null
+        }
+        sessionStorage.setItem('user', JSON.stringify(user))
+        return user as IUser
+
+    } catch (error) {
+        if (error.statusCode === 401) {
+            sessionStorage.removeItem('user')
+            return null
+        }
     }
-    sessionStorage.setItem('user', JSON.stringify(user))
-    return user as IUser
 }

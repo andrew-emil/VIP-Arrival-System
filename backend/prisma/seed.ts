@@ -25,8 +25,8 @@ async function main() {
     /* =======================
        Admin User
        ======================= */
-    const adminEmail = process.env.DEFAULT_ADMIN_EMAIL || 'admin@example.com';
-    const adminPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'Admin@123!';
+    const adminEmail = process.env.DEFAULT_ADMIN_EMAIL!
+    const adminPassword = process.env.DEFAULT_ADMIN_PASSWORD!
 
     const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
     if (!existingAdmin) {
@@ -65,52 +65,82 @@ async function main() {
     const cam02Id = randomUUID();
     const cam03Id = randomUUID();
 
-    const cams = await Promise.all([
-        prisma.camera.create({
-            data: {
-                id: cam01Id,
-                name: 'Main Gate',
-                role: CameraRole.GATE,
-                eventId: event.id,
-                ip: '192.168.1.101',
-                location: 'Main Entrance North'
-            }
-        }),
-        prisma.camera.create({
-            data: {
-                id: cam02Id,
-                name: 'Side Gate',
-                role: CameraRole.GATE,
-                eventId: event.id,
-                ip: '192.168.1.102',
-                location: 'Service Entrance West'
-            }
-        }),
-        prisma.camera.create({
-            data: {
-                id: cam03Id,
-                name: 'Approach Road',
-                role: CameraRole.APPROACH,
-                eventId: event.id,
-                ip: '192.168.1.103',
-                location: 'Highway Approach'
-            }
-        })
-    ]);
-    logger.info(`Created ${cams.length} Cameras`);
+    // const cams = await Promise.all([
+    //     prisma.camera.create({
+    //         data: {
+    //             id: cam01Id,
+    //             name: 'Main Gate',
+    //             role: CameraRole.GATE,
+    //             eventId: event.id,
+    //             ip: '192.168.1.105',
+    //             location: 'Main Entrance North'
+    //         }
+    //     }),
+    //     prisma.camera.create({
+    //         data: {
+    //             id: cam02Id,
+    //             name: 'Side Gate',
+    //             role: CameraRole.GATE,
+    //             eventId: event.id,
+    //             ip: '192.168.1.106',
+    //             location: 'Service Entrance West'
+    //         }
+    //     }),
+    //     prisma.camera.create({
+    //         data: {
+    //             id: cam03Id,
+    //             name: 'Approach Road',
+    //             role: CameraRole.APPROACH,
+    //             eventId: event.id,
+    //             ip: '192.168.1.107',
+    //             location: 'Highway Approach'
+    //         }
+    //     })
+    // ]);
+    // logger.info(`Created ${cams.length} Cameras`);
 
     /* =======================
-       VIPs (3) & Plates & Sessions
+       VIPs (3) & Plates & Sessions — 3 male guests, 3 session states for UI testing
        ======================= */
+    const nowSeed = new Date();
     const vipsData = [
-        { name: 'Abdullah Al-Falah', company: 'Saudi Tech', plate: 'ABC123', level: 'Royal' },
-        { name: 'Sarah Johnson', company: 'Global Events', plate: 'VIP777', level: 'Executive' },
-        { name: 'Mohammed Rashid', company: 'Dubai Investments', plate: 'VIP001', level: 'Protocol-1' },
+        {
+            name: 'Abdullah Al-Falah',
+            company: 'Saudi Tech',
+            plate: 'BCS156',
+            level: 'Royal',
+            session: {
+                status: SessionStatus.REGISTERED,
+                approachAt: null,
+                arrivedAt: null,
+            },
+        },
+        {
+            name: 'Khalid Al-Mansour',
+            company: 'Global Events',
+            plate: 'SJM652',
+            level: 'Executive',
+            session: {
+                status: SessionStatus.APPROACHING,
+                approachAt: new Date(nowSeed.getTime() - 1000 * 60 * 8),
+                arrivedAt: null,
+            },
+        },
+        {
+            name: 'Mohammed Rashid',
+            company: 'Dubai Investments',
+            plate: 'IBU657',
+            level: 'Protocol-1',
+            session: {
+                status: SessionStatus.ARRIVED,
+                approachAt: new Date(nowSeed.getTime() - 1000 * 60 * 20),
+                arrivedAt: new Date(nowSeed.getTime() - 1000 * 60 * 5),
+            },
+        },
     ];
 
     const createdVips: vip[] = [];
-    for (let i = 0; i < vipsData.length; i++) {
-        const data = vipsData[i];
+    for (const data of vipsData) {
         const vip = await prisma.vip.create({
             data: {
                 name: data.name,
@@ -124,7 +154,9 @@ async function main() {
                 sessions: {
                     create: {
                         eventId: event.id,
-                        status: SessionStatus.REGISTERED
+                        status: data.session.status,
+                        approachAt: data.session.approachAt ?? undefined,
+                        arrivedAt: data.session.arrivedAt ?? undefined,
                     }
                 }
             }

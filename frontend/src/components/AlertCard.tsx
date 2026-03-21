@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Alert, RealtimeEvent } from '@/types';
+import { SessionStatus } from '@/services/sessions/types';
 import { useTranslation } from 'react-i18next';
 
 interface AlertCardProps {
@@ -18,6 +19,12 @@ const statusColors: Record<string, string> = {
   [RealtimeEvent.VIP_COMPLETED]: 'bg-muted text-muted-foreground',
   [RealtimeEvent.VIP_ADDED]: 'bg-blue-500 text-white',
   [RealtimeEvent.VIP_STATUS_CHANGED]: 'bg-blue-500 text-white',
+  // SessionStatus variants
+  [SessionStatus.APPROACHING]: 'bg-alert-approaching text-foreground',
+  [SessionStatus.ARRIVED]: 'bg-alert-arrived text-primary-foreground',
+  [SessionStatus.CONFIRMED]: 'bg-alert-confirmed text-primary-foreground',
+  [SessionStatus.REJECTED]: 'bg-alert-error text-primary-foreground',
+  [SessionStatus.COMPLETED]: 'bg-muted text-muted-foreground',
 };
 
 const statusBorder: Record<string, string> = {
@@ -28,6 +35,12 @@ const statusBorder: Record<string, string> = {
   [RealtimeEvent.VIP_COMPLETED]: 'border-muted/30',
   [RealtimeEvent.VIP_ADDED]: 'border-blue-500/30',
   [RealtimeEvent.VIP_STATUS_CHANGED]: 'border-blue-500/30',
+  // SessionStatus variants
+  [SessionStatus.APPROACHING]: 'border-alert-approaching/30',
+  [SessionStatus.ARRIVED]: 'border-alert-arrived/30',
+  [SessionStatus.CONFIRMED]: 'border-alert-confirmed/30',
+  [SessionStatus.REJECTED]: 'border-alert-error/30',
+  [SessionStatus.COMPLETED]: 'border-muted/30',
 };
 
 export function AlertCard({ alert, onClick }: AlertCardProps) {

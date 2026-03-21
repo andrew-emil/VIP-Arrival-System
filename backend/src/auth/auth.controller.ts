@@ -51,6 +51,7 @@ export class AuthController {
         });
     }
 
+    @Public()
     @Post('device/login')
     @HttpCode(200)
     @ApiOperation({ summary: 'Login for gate devices (tablets/phones)' })
