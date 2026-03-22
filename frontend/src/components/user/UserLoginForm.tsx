@@ -47,7 +47,7 @@ export function UserLoginForm() {
         name: data.name,
         email: data.email,
         role: data.role,
-      });
+      }); // IStoredUser: user login stores id, name, email, role
 
       const redirectMap: Record<Role, string> = {
         [Role.ADMIN]: '/dashboard',

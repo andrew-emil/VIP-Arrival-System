@@ -27,3 +27,12 @@ export async function getSessionById(id: string) {
         throw error?.response?.data || error;
     }
 }
+
+export async function getSessionByCameraId(cameraId: string) {
+    try {
+        const { data } = await api.get<ISession[]>(`/sessions/camera/${cameraId}`);
+        return data;
+    } catch (error) {
+        throw error?.response?.data || error;
+    }
+}

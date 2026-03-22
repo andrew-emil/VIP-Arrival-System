@@ -33,6 +33,7 @@ export class AuthController {
         @Session() session: Record<string, any>,
     ) {
         const user = await this.authService.login(dto);
+        delete session['deviceAccountId'];
         session['userId'] = user.id;
         return { user };
     }
@@ -58,13 +59,20 @@ export class AuthController {
     @ApiBody({ type: DeviceLoginDto })
     @ApiResponse({ status: 200, description: 'Login successful, returns device and camera identifiers' })
     @ApiResponse({ status: 401, description: 'Invalid device ID or password' })
-    async deviceLogin(@Body() loginDto: DeviceLoginDto) {
-        return this.authService.deviceLogin(loginDto.deviceId, loginDto.password);
+    async deviceLogin(
+        @Body() loginDto: DeviceLoginDto,
+        @Session() session: Record<string, any>,
+    ) {
+        const result = await this.authService.deviceLogin(loginDto.deviceId, loginDto.password);
+        delete session['userId'];
+        session['deviceAccountId'] = result.deviceAccountId;
+        return result;
     }
 
     @Get('me')
     @ApiOperation({ summary: 'Get current session user profile' })
     @ApiResponse({ status: 200, description: 'Current user info' })
+    @ApiResponse({ status: 401, description: 'Authorization required' })
     async me(@Session() session: Record<string, any>) {
         const userId = session['userId'];
         if (!userId) throw new UnauthorizedException('Not authenticated');

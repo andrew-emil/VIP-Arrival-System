@@ -3,6 +3,7 @@ export const SessionsQueryKeys = {
     findAll: () => ['sessions', 'findAll'] as const,
     findArrived: () => ['sessions', 'arrived'] as const,
     findById: (id: string) => ['sessions', 'find', id] as const,
+    findByCameraId: (cameraId: string) => ['sessions', 'camera', cameraId] as const,
 
     confirm: (id: string) => ['sessions', 'confirm', id] as const,
     complete: (id: string) => ['sessions', 'complete', id] as const,

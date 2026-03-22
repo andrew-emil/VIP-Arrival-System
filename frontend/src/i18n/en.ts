@@ -42,6 +42,7 @@ export default {
     monitor: 'Monitor',
     gate: 'Gate',
     accountDevices: 'Account Devices',
+    sessions: 'Sessions',
   },
   alerts: {
     title: 'Live Alerts',
@@ -183,6 +184,17 @@ export default {
     arrivalTime: 'Arrival Time',
     noArrivals: 'No arrivals awaiting confirmation',
     noArrivalsDesc: 'New arrivals will appear here automatically as they approach the gate.',
+  },
+  sessions: {
+    title: 'Arrival Sessions',
+    vip: 'VIP',
+    plate: 'Plate',
+    status: 'Status',
+    cameraLocation: 'Camera / Location',
+    approachedAt: 'Approached At',
+    arrivedAt: 'Arrived At',
+    confirmedAt: 'Confirmed At',
+    searchPlaceholder: 'Search by VIP or plate...',
   },
   notFound: {
     title: 'Page Not Found',

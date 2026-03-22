@@ -36,6 +36,7 @@ export function AppSidebar({ side = 'left' }: AppSidebarProps) {
     { title: t('nav.monitor'), url: '/manager/monitor', icon: VAS_ICONS.monitor, roles: [Role.MANAGER, Role.OBSERVER] },
     { title: t('nav.vips'), url: '/vips', icon: VAS_ICONS.vips, roles: [Role.ADMIN, Role.OPERATOR] },
     { title: t('nav.events'), url: '/events', icon: Calendar, roles: [Role.ADMIN] },
+    { title: t('nav.sessions'), url: '/sessions', icon: VAS_ICONS.activity, roles: [Role.ADMIN, Role.OPERATOR] },
     { title: t('nav.cameras'), url: '/cameras', icon: VAS_ICONS.cameras, roles: [Role.ADMIN, Role.OPERATOR] },
     { title: t('nav.users'), url: '/users', icon: VAS_ICONS.users, roles: [Role.ADMIN] },
     { title: t('nav.accountDevices'), url: '/account-devices', icon: VAS_ICONS.device, roles: [Role.ADMIN] },

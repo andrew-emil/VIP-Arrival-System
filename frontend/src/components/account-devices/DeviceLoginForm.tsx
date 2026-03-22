@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { deviceLogin } from '@/services/auth';
-import { Role } from '@/services/users/types';
+import { Role } from '@/services/users';
 import { useAuthStore } from '@/stores/authStore';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
@@ -45,10 +45,10 @@ export function DeviceLoginForm() {
       loginStore({
         id: data.deviceId,
         name: data.name,
-        email: `device-${data.deviceId}@vas.internal`,
+        cameraId: data.cameraId,
+        cameraLabel: data.cameraLabel,
         role: Role.GATE_GUARD,
-      });
-      console.log(data)
+      }); // IStoredUser: device login stores deviceId as id, name, cameraId, cameraLabel, role
 
       navigate('/gate');
     },

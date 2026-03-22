@@ -11,6 +11,7 @@ const routeTitleKeys: Record<string, string> = {
   '/manager/monitor': 'nav.monitor',
   '/vips': 'nav.vips',
   '/events': 'nav.events',
+  '/sessions': 'nav.sessions',
   '/cameras': 'nav.cameras',
   '/users': 'nav.users',
   '/account-devices': 'nav.accountDevices',
@@ -46,7 +47,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               {user && (
                 <div className="flex items-center gap-2">
                   <div className="hidden sm:block text-end">
-                    <p className="text-sm font-medium leading-none">{user.email}</p>
+                    <p className="text-sm font-medium leading-none">{user.name}</p>
+                    {user.email && (
+                      <p className="text-[11px] text-muted-foreground mt-0.5">{user.email}</p>
+                    )}
                     <p className="text-[11px] text-primary mt-0.5 uppercase tracking-wider">
                       {t(`users.${user.role.toLowerCase()}`)}
                     </p>
@@ -54,7 +58,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   <Avatar>
                     <AvatarFallback className="bg-muted text-[10px] sm:text-xs font-medium">
                       <div className="w-10 h-10 rounded-2xl bg-[#1e293b] overflow-hidden ring-4 ring-[#1e293b]/30">
-                        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`} alt="Avatar" />
+                        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email ?? user.name}`} alt="Avatar" />
                       </div>
                     </AvatarFallback>
                   </Avatar>

@@ -70,7 +70,7 @@ export function GateAlertCard({ alert }: GateAlertCardProps) {
       <div className="flex gap-3">
         <Button
           size="lg"
-          className="flex-1 h-14 text-base gap-2 bg-alert-arrived hover:bg-alert-arrived/90 text-primary-foreground"
+          className="flex-1 h-12 text-base gap-2 bg-alert-arrived hover:bg-alert-arrived/90 text-primary-foreground"
           onClick={() => confirm()}
           disabled={isConfirming || isRejecting}
         >
@@ -78,9 +78,9 @@ export function GateAlertCard({ alert }: GateAlertCardProps) {
           {t('gate.confirmArrival')}
         </Button>
         <Button
-          size="lg"
+          size="sm"
           variant="destructive"
-          className="flex-1 h-14 text-base gap-2"
+          className="flex-1 h-12 text-base gap-2"
           onClick={() => reject()}
           disabled={isConfirming || isRejecting}
         >

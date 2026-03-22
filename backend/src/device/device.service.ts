@@ -46,6 +46,18 @@ export class DeviceService {
     return device;
   }
 
+  /** Resolve by internal id or public `deviceId` (used for device login). */
+  async findDeviceForAuth(identifier: string) {
+    const device = await this.prisma.deviceAccount.findFirst({
+      where: { OR: [{ id: identifier }, { deviceId: identifier }] },
+      include: { camera: true },
+    });
+
+    if (!device) throw new UnauthorizedException('Unknown device');
+
+    return device;
+  }
+
   async findDeviceFromCamera(cameraId: string) {
     return this.prisma.deviceAccount.findMany({
       where: {

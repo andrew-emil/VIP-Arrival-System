@@ -9,7 +9,7 @@ import { useNavigate } from "react-router";
 export function GateLayout({ children }: { children: React.ReactNode }) {
   const { i18n, t } = useTranslation();
   const { theme, setTheme } = useThemeStore();
-  const { logout } = useAuthStore();
+  const { logout, user } = useAuthStore();
   const navigate = useNavigate();
 
   function toggleLang() {
@@ -40,6 +40,16 @@ export function GateLayout({ children }: { children: React.ReactNode }) {
               <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5">PLATFORM_v2.5</span>
             </div>
           </div>
+
+          {/* Device / User Info */}
+          {user && (
+            <div className="hidden sm:flex flex-col items-center text-center">
+              <p className="text-sm font-semibold leading-none">{user.name}</p>
+              {user.cameraLabel && (
+                <p className="text-[11px] text-muted-foreground mt-0.5">{user.cameraLabel}</p>
+              )}
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex items-center gap-2">

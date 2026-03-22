@@ -65,39 +65,39 @@ async function main() {
     const cam02Id = randomUUID();
     const cam03Id = randomUUID();
 
-    // const cams = await Promise.all([
-    //     prisma.camera.create({
-    //         data: {
-    //             id: cam01Id,
-    //             name: 'Main Gate',
-    //             role: CameraRole.GATE,
-    //             eventId: event.id,
-    //             ip: '192.168.1.105',
-    //             location: 'Main Entrance North'
-    //         }
-    //     }),
-    //     prisma.camera.create({
-    //         data: {
-    //             id: cam02Id,
-    //             name: 'Side Gate',
-    //             role: CameraRole.GATE,
-    //             eventId: event.id,
-    //             ip: '192.168.1.106',
-    //             location: 'Service Entrance West'
-    //         }
-    //     }),
-    //     prisma.camera.create({
-    //         data: {
-    //             id: cam03Id,
-    //             name: 'Approach Road',
-    //             role: CameraRole.APPROACH,
-    //             eventId: event.id,
-    //             ip: '192.168.1.107',
-    //             location: 'Highway Approach'
-    //         }
-    //     })
-    // ]);
-    // logger.info(`Created ${cams.length} Cameras`);
+    const cams = await Promise.all([
+        prisma.camera.create({
+            data: {
+                id: cam01Id,
+                name: 'Main Gate',
+                role: CameraRole.GATE,
+                eventId: event.id,
+                ip: '192.168.1.105',
+                location: 'Main Entrance North'
+            }
+        }),
+        prisma.camera.create({
+            data: {
+                id: cam02Id,
+                name: 'Side Gate',
+                role: CameraRole.GATE,
+                eventId: event.id,
+                ip: '192.168.1.106',
+                location: 'Service Entrance West'
+            }
+        }),
+        prisma.camera.create({
+            data: {
+                id: cam03Id,
+                name: 'Approach Road',
+                role: CameraRole.APPROACH,
+                eventId: event.id,
+                ip: '192.168.1.107',
+                location: 'Highway Approach'
+            }
+        })
+    ]);
+    logger.info(`Created ${cams.length} Cameras`);
 
     /* =======================
        VIPs (3) & Plates & Sessions — 3 male guests, 3 session states for UI testing

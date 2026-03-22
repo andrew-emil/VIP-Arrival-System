@@ -36,3 +36,12 @@ export interface CreateUserDto {
 export interface UpdateUserDto extends Partial<CreateUserDto> {
     isActive?: boolean;
 }
+
+export interface IStoredUser {
+    id: string
+    name: string
+    cameraId?: string
+    cameraLabel?: string
+    email?: string
+    role: Role
+}

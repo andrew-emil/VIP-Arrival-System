@@ -35,7 +35,7 @@ export class AuthService {
     }
 
     async deviceLogin(deviceId: string, password: string) {
-        const device = await this.deviceService.findOneDevice(deviceId);
+        const device = await this.deviceService.findDeviceForAuth(deviceId);
         if (!device.isActive) throw new UnauthorizedException('Invalid credentials');
 
         const passwordToCheck = device.temporaryPassword;
@@ -52,6 +52,7 @@ export class AuthService {
         }
 
         return {
+            deviceAccountId: device.id,
             deviceId: device.deviceId,
             name: device.name,
             cameraId: device.cameraId,

@@ -42,6 +42,7 @@ export default {
     monitor: 'المراقبة',
     gate: 'البوابة',
     accountDevices: 'أجهزة الحساب',
+    sessions: 'الجلسات',
   },
   alerts: {
     title: 'التنبيهات الحية',
@@ -182,6 +183,17 @@ export default {
     arrivalTime: 'وقت الوصول',
     noArrivals: 'لا توجد وصولات بانتظار التأكيد',
     noArrivalsDesc: 'ستظهر كبار الشخصيات الجديدة هنا تلقائيًا عند اقترابهم من البوابة.',
+  },
+  sessions: {
+    title: 'جلسات الوصول',
+    vip: 'الشخصية',
+    plate: 'اللوحة',
+    status: 'الحالة',
+    cameraLocation: 'الكاميرا / الموقع',
+    approachedAt: 'وقت الاقتراب',
+    arrivedAt: 'وقت الوصول',
+    confirmedAt: 'وقت التأكيد',
+    searchPlaceholder: 'ابحث بالاسم أو رقم اللوحة...',
   },
   notFound: {
     title: 'الصفحة غير موجودة',

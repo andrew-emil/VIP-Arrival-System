@@ -9,6 +9,7 @@ import LoginPage from "./pages/LoginPage";
 import ManagerMonitor from "./pages/ManagerMonitor";
 import NotFound from "./pages/NotFound";
 import OperationsDashboard from "./pages/OperationsDashboard";
+import SessionsPage from "./pages/SessionsPage";
 import SettingsPage from "./pages/SettingsPage";
 import UsersPage from "./pages/UsersPage";
 import VipsPage from "./pages/VipsPage";
@@ -56,6 +57,11 @@ export const router = createBrowserRouter([
         path: "/users",
         loader: requireRole(['admin']),
         element: <UsersPage />,
+    },
+    {
+        path: "/sessions",
+        loader: requireRole(['admin', 'operator']),
+        element: <SessionsPage />,
     },
     {
         path: "/gate",

@@ -1,17 +1,17 @@
-import { ILoginResponse, logout as apiLogout } from '@/services/auth';
-import { Role } from '@/services/users';
+import { logout as apiLogout } from '@/services/auth';
+import { IStoredUser, Role } from '@/services/users';
 import { create } from 'zustand';
 
 
 interface AuthState {
-  user: ILoginResponse | null;
+  user: IStoredUser | null;
   isAuthenticated: boolean;
-  login: (user: ILoginResponse) => void;
+  login: (user: IStoredUser) => void;
   logout: () => Promise<void>;
   hasRole: (roles: Role[]) => boolean;
 }
 
-const getStoredUser = (): ILoginResponse | null => {
+const getStoredUser = (): IStoredUser | null => {
   try {
     const raw = sessionStorage.getItem('user');
     return raw ? JSON.parse(raw) : null;

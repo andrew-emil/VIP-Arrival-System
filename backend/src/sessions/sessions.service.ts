@@ -1,5 +1,7 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { CameraRole } from '@prisma/client';
 import { SessionStatus } from '@prisma/client';
+import { CameraService } from 'src/camera/camera.service';
 import { PrismaService } from 'src/core/prisma/prisma.service';
 import { RealtimeEvent } from 'src/realtime/realtime.enums';
 import { RealtimeService } from 'src/realtime/realtime.service';
@@ -9,6 +11,7 @@ export class SessionsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly realtimeService: RealtimeService,
+    private readonly cameraService: CameraService
   ) { }
 
   async getAllSessions() {
@@ -37,6 +40,23 @@ export class SessionsService {
         vip: true,
       }
     })
+  }
+
+  async getArrivedSessionsByCameraId(cameraId: string) {
+    const camera = await this.cameraService.findOneCamera(cameraId)
+
+    return this.prisma.vipSession.findMany({
+      where: {
+        eventId: camera.eventId,
+        status: {
+          in: [SessionStatus.ARRIVED, SessionStatus.APPROACHING],
+        },
+      },
+      include: {
+        vip: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async confirmSession(sessionId: string, confirmedByUserId: string) {

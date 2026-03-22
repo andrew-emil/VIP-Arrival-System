@@ -1,21 +1,21 @@
+import { GateAlertCard } from '@/components/GateAlertCard';
+import { useSSE } from '@/hooks/useSSE';
+import { GateLayout } from '@/layouts/GateLayout';
+import { getSessionByCameraId, SessionsQueryKeys, SessionStatus } from '@/services/sessions';
+import { useAlertStore } from '@/stores/alertStore';
+import { useAuthStore } from '@/stores/authStore';
+import { Alert, ProtocolLevel, RealtimeEvent } from '@/types';
+import { useQuery } from '@tanstack/react-query';
+import { Shield } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { GateLayout } from '@/layouts/GateLayout';
-import { GateAlertCard } from '@/components/GateAlertCard';
-import { useAlertStore } from '@/stores/alertStore';
-import { useSSE } from '@/hooks/useSSE';
-import { Shield } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { getArrivedSessions } from '@/services/sessions/query';
-import { SessionsQueryKeys } from '@/services/sessions/queryKeys';
-import { Alert, ProtocolLevel, RealtimeEvent } from '@/types';
-import { SessionStatus } from '@/services/sessions/types';
 
 export default function GatePage() {
   const { t } = useTranslation();
   const alerts = useAlertStore((s) => s.alerts);
   const setAlerts = useAlertStore((s) => s.setAlerts);
   const [isHydrated, setIsHydrated] = useState(false);
+  const user = useAuthStore((s) => s.user);
 
   useSSE();
 
@@ -25,9 +25,12 @@ export default function GatePage() {
     return unsub;
   }, []);
 
+  const cameraId = user?.cameraId;
+
   const { data: arrivedSessions } = useQuery({
-    queryKey: SessionsQueryKeys.findArrived(),
-    queryFn: getArrivedSessions,
+    queryKey: SessionsQueryKeys.findByCameraId(cameraId ?? ''),
+    queryFn: () => getSessionByCameraId(cameraId!),
+    enabled: !!cameraId,
   });
 
   useEffect(() => {

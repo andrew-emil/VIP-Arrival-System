@@ -8,11 +8,11 @@ import { SessionsService } from './sessions.service';
 @ApiTags('Sessions')
 @Controller('sessions')
 @UseGuards(RolesGuard)
+@Roles(Role.OPERATOR, Role.ADMIN)
 export class SessionsController {
   constructor(private readonly sessionsService: SessionsService) { }
 
   @Get()
-  @Roles(Role.MANAGER, Role.ADMIN, Role.OPERATOR, Role.OBSERVER)
   @ApiOperation({ summary: 'List all VIP sessions' })
   @ApiResponse({ status: 200, description: 'List of all sessions' })
   getAllSessions() {
@@ -20,15 +20,30 @@ export class SessionsController {
   }
 
   @Get('/arrived')
-  @Roles(Role.MANAGER, Role.ADMIN, Role.OPERATOR, Role.OBSERVER, Role.GATE_GUARD)
+  @Roles(Role.MANAGER, Role.OBSERVER)
   @ApiOperation({ summary: 'List sessions with status ARRIVED or APPROACHING' })
   @ApiResponse({ status: 200, description: 'List of arrived/approaching sessions' })
   getArrivedSessions() {
     return this.sessionsService.getArrivedSessions();
   }
 
+  @Get('/arrived/camera/:cameraId')
+  @Roles(Role.GATE_GUARD)
+  @ApiOperation({
+    summary: 'List arrived/approaching VIP sessions for a gate camera',
+    description:
+      'Returns sessions for the same event as the given gate camera (ARRIVED or APPROACHING). Use the gate terminal camera ID.',
+  })
+  @ApiParam({ name: 'cameraId', description: 'Gate camera UUID' })
+  @ApiResponse({ status: 200, description: 'List of arrived/approaching sessions for this camera event' })
+  @ApiResponse({ status: 400, description: 'Camera is not a gate camera' })
+  @ApiResponse({ status: 404, description: 'Camera not found' })
+  getArrivedSessionsByCameraId(@Param('cameraId') cameraId: string) {
+    return this.sessionsService.getArrivedSessionsByCameraId(cameraId);
+  }
+
   @Get('/:id')
-  @Roles(Role.MANAGER, Role.ADMIN, Role.OPERATOR, Role.OBSERVER)
+  @Roles(Role.MANAGER, Role.OBSERVER)
   @ApiOperation({ summary: 'Get a single VIP session by ID' })
   @ApiParam({ name: 'id', description: 'Session UUID' })
   @ApiResponse({ status: 200, description: 'Session details' })
@@ -38,7 +53,7 @@ export class SessionsController {
   }
 
   @Patch('/:id/confirm')
-  @Roles(Role.MANAGER, Role.ADMIN, Role.GATE_GUARD, Role.OPERATOR)
+  @Roles(Role.GATE_GUARD)
   @ApiOperation({ summary: 'Confirm a VIP session manually' })
   @ApiParam({ name: 'id', description: 'Session UUID' })
   @ApiResponse({ status: 200, description: 'The VIP session has been successfully confirmed.' })
@@ -49,7 +64,6 @@ export class SessionsController {
   }
 
   @Patch('/:id/complete')
-  @Roles(Role.MANAGER, Role.ADMIN)
   @ApiOperation({ summary: 'Complete a VIP session manually' })
   @ApiParam({ name: 'id', description: 'Session UUID' })
   @ApiResponse({ status: 200, description: 'The VIP session has been successfully completed.' })
@@ -60,7 +74,7 @@ export class SessionsController {
   }
 
   @Patch('/:id/reject')
-  @Roles(Role.MANAGER, Role.ADMIN, Role.GATE_GUARD, Role.OPERATOR)
+  @Roles(Role.GATE_GUARD)
   @ApiOperation({ summary: 'Reject a VIP session at the gate' })
   @ApiResponse({ status: 200, description: 'The VIP session has been rejected.' })
   rejectSession(@Param('id') id: string, @Req() req: any) {

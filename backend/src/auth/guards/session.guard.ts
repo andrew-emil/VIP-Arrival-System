@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
+import { Role } from '@prisma/client';
 import { PrismaService } from 'src/core/prisma/prisma.service';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
@@ -26,24 +27,48 @@ export class SessionGuard implements CanActivate {
         if (isPublic) return true;
 
         const request = context.switchToHttp().getRequest<Request>();
-        const userId = request.session?.['userId'];
+        const session = request.session;
+        const userId = session?.['userId'] as string | undefined;
+        const deviceAccountId = session?.['deviceAccountId'] as string | undefined;
 
-        if (!userId) {
+        if (!userId && !deviceAccountId) {
             throw new UnauthorizedException('Authentication required');
         }
 
-        // Load user from DB so that RolesGuard can read req.user.role
-        const user = await this.prisma.user.findUnique({
-            where: { id: userId },
-            select: { id: true, name: true, email: true, role: true, isActive: true },
-        });
+        if (userId) {
+            const user = await this.prisma.user.findUnique({
+                where: { id: userId },
+                select: { id: true, name: true, email: true, role: true, isActive: true },
+            });
 
-        if (!user || !user.isActive) {
-            throw new UnauthorizedException('Session invalid or account disabled');
+            if (!user || !user.isActive) {
+                throw new UnauthorizedException('Session invalid or account disabled');
+            }
+
+            (request as any).user = user;
+            return true;
         }
 
-        // Populate req.user — the same shape RolesGuard expects
-        (request as any).user = user;
+        if (!deviceAccountId) {
+            throw new UnauthorizedException('Authentication required');
+        }
+
+        const device = await this.prisma.deviceAccount.findUnique({
+            where: { id: deviceAccountId },
+            select: { id: true, name: true, isActive: true },
+        });
+
+        if (!device || !device.isActive) {
+            throw new UnauthorizedException('Session invalid or device disabled');
+        }
+
+        (request as any).user = {
+            id: device.id,
+            name: device.name,
+            email: '',
+            role: Role.GATE_GUARD,
+            isActive: true,
+        };
         return true;
     }
 }
