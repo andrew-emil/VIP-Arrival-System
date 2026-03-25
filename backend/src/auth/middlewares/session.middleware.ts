@@ -22,9 +22,9 @@ const sessionMiddleware = session({
     name: 'sid',
     cookie: {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: true,
         maxAge: 8 * 60 * 60 * 1000, // 8 hours
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        sameSite: 'none',
     },
 });
 
