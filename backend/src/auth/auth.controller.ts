@@ -35,6 +35,10 @@ export class AuthController {
         const user = await this.authService.login(dto);
         delete session['deviceAccountId'];
         session['userId'] = user.id;
+        await new Promise<void>((resolve, reject) =>
+            session.save((err) => (err ? reject(err) : resolve())),
+        );
+
         return { user };
     }
 
@@ -66,6 +70,10 @@ export class AuthController {
         const result = await this.authService.deviceLogin(loginDto.deviceId, loginDto.password);
         delete session['userId'];
         session['deviceAccountId'] = result.deviceAccountId;
+        await new Promise<void>((resolve, reject) =>
+            session.save((err) => (err ? reject(err) : resolve())),
+        );
+
         return result;
     }
 

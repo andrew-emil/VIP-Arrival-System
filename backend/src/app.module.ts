@@ -37,9 +37,7 @@ import { VipModule } from './vip/vip.module';
     HealthModule,
     LoggerModule.forRoot({
       pinoHttp: {
-        transport: process.env.NODE_ENV !== 'production'
-          ? { target: 'pino-pretty', options: { colorize: true } }
-          : undefined,
+        transport: { target: 'pino-pretty', options: { colorize: true } }
       },
     }),
     ThrottlerModule.forRoot({
