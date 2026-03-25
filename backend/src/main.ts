@@ -9,6 +9,7 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.useLogger(app.get(Logger));
+  app.getHttpAdapter().getInstance().set('trust proxy', 1);
 
   app.enableCors({
     origin: process.env.ALLOWED_ORIGINS?.split(','),
