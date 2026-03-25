@@ -65,6 +65,9 @@ import { VipModule } from './vip/vip.module';
         connection: {
           host: configService.getOrThrow<string>('redis.host'),
           port: configService.getOrThrow<number>('redis.port'),
+          password: configService.getOrThrow<string>('redis.password'),
+          tls: {},
+          lazyConnect: true,
         },
       }),
     }),
