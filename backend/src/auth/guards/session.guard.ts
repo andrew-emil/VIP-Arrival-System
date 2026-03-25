@@ -30,7 +30,11 @@ export class SessionGuard implements CanActivate {
         const session = request.session;
         const userId = session?.['userId'] as string | undefined;
         const deviceAccountId = session?.['deviceAccountId'] as string | undefined;
-        console.log(session)
+        console.log('=== SESSION DEBUG ===');
+        console.log('Session ID:', request.sessionID);
+        console.log('Session data:', JSON.stringify(session));
+        console.log('Cookies:', request.headers.cookie);
+        console.log('====================');
 
         if (!userId && !deviceAccountId) {
             throw new UnauthorizedException('Authentication required');

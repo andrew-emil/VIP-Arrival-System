@@ -35,6 +35,11 @@ export class AuthController {
         const user = await this.authService.login(dto);
         delete session['deviceAccountId'];
         session['userId'] = user.id;
+        
+        console.log('=== LOGIN DEBUG ===');
+        console.log('Session ID after login:', session.id);
+        console.log('Session data after login:', JSON.stringify(session));
+
         await new Promise<void>((resolve, reject) =>
             session.save((err) => (err ? reject(err) : resolve())),
         );
