@@ -5,8 +5,8 @@ import {
     UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Request } from 'express';
 import { Role } from '@prisma/client';
+import { Request } from 'express';
 import { PrismaService } from 'src/core/prisma/prisma.service';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
@@ -30,6 +30,7 @@ export class SessionGuard implements CanActivate {
         const session = request.session;
         const userId = session?.['userId'] as string | undefined;
         const deviceAccountId = session?.['deviceAccountId'] as string | undefined;
+        console.log(session)
 
         if (!userId && !deviceAccountId) {
             throw new UnauthorizedException('Authentication required');

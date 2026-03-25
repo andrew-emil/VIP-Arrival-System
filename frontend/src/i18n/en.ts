@@ -32,6 +32,7 @@ export default {
     loading: 'Loading...',
     copied: 'Copied to clipboard',
     copy: 'Copy',
+    error: 'An error occurred',
   },
   nav: {
     dashboard: 'Dashboard',
@@ -89,9 +90,12 @@ export default {
     addVip: 'Add VIP',
     editVip: 'Edit VIP',
     plateNumbers: 'Plate Numbers',
+    plateNumbersPlaceholder: 'ABC 1234, DEF 5678',
     protocolLevel: 'Protocol Level',
     photo: 'Photo',
     searchPlaceholder: 'Search by name or plate...',
+    createSuccess: 'VIP created successfully',
+    updateSuccess: 'VIP updated successfully',
     deleteSuccess: 'VIP deleted successfully',
     confirmDelete: 'Are you sure you want to delete this VIP?',
   },
@@ -174,7 +178,7 @@ export default {
     createSuccess: 'Device account created successfully',
     selectCameraTitle: 'Linked Camera',
     deleteSuccess: 'Device account deleted successfully',
-    
+    deviceId: 'Device ID',
   },
   gate: {
     title: 'Gate Confirmation',

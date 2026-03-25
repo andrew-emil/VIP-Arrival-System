@@ -19,8 +19,14 @@ const prisma = new PrismaClient({ adapter })
 
 async function main() {
     logger.info('🌱 Seeding database...');
+    try {
+        await prisma.$connect();
+        
+    }catch(error){
+        logger.error('❌ Seed failed', error.message);
+        process.exit(1);
+    }
 
-    await prisma.$connect();
 
     /* =======================
        Admin User
@@ -145,7 +151,7 @@ async function main() {
             name: 'Abdullah Al-Falah',
             company: 'Saudi Tech',
             plate: 'BCS156',
-            protocolLevel: 'Royal',
+            protocolLevel: 'B',
             session: {
                 status: SessionStatus.REGISTERED,
                 approachAt: null,
@@ -156,7 +162,7 @@ async function main() {
             name: 'Khalid Al-Mansour',
             company: 'Global Events',
             plate: 'SJM652',
-            protocolLevel: 'Executive',
+            protocolLevel: 'C',
             session: {
                 status: SessionStatus.APPROACHING,
                 approachAt: new Date(nowSeed.getTime() - 1000 * 60 * 8),
@@ -167,7 +173,7 @@ async function main() {
             name: 'Mohammed Rashid',
             company: 'Dubai Investments',
             plate: 'IBU657',
-            protocolLevel: 'Protocol-1',
+            protocolLevel: 'A',
             session: {
                 status: SessionStatus.ARRIVED,
                 approachAt: new Date(nowSeed.getTime() - 1000 * 60 * 20),

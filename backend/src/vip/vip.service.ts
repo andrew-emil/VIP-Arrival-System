@@ -69,13 +69,10 @@ export class VipService {
             take: 200,
         });
 
-        return {
-            items: items.map((v) => ({
-                id: v.id,
-                plateNormalized: v.plates.length > 0 ? v.plates[0].plateNumber : 'UNKNOWN',
-                name: v.name,
-            })),
-        };
+        return items.map((v) => ({
+            ...v,
+            plateNormalized: v.plates.length > 0 ? v.plates[0].plateNumber : 'UNKNOWN',
+        }));
     }
 
     async update(id: string, updateVipDto: UpdateVipDto) {

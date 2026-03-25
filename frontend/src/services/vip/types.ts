@@ -29,10 +29,15 @@ export interface UpdateVipDto extends CreateVipDto {
     plateNumbers?: string[];
 }
 
-export interface GetAllVipsResponse {
-    items: {
-        id: string;
-        plateNormalized: string;
-        name: string;
-    }[]
+export interface VipPlate {
+    id: string;
+    plateNumber: string;
+    vipId: string;
 }
+
+export interface VipItem extends IVip {
+    plateNormalized: string;
+    plates: VipPlate[];
+}
+
+export type GetAllVipsResponse = VipItem[];

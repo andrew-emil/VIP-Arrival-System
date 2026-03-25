@@ -32,6 +32,7 @@ export default {
     loading: 'جارٍ التحميل...',
     copied: 'تم النسخ إلى الحافظة',
     copy: 'نسخ',
+    error: 'حدث خطأ ما',
   },
   nav: {
     dashboard: 'لوحة التحكم',
@@ -89,9 +90,12 @@ export default {
     addVip: 'إضافة شخصية',
     editVip: 'تعديل الشخصية',
     plateNumbers: 'أرقام اللوحات',
+    plateNumbersPlaceholder: 'ABC 1234, DEF 5678',
     protocolLevel: 'مستوى البروتوكول',
     photo: 'الصورة',
     searchPlaceholder: 'بحث بالاسم أو رقم اللوحة...',
+    createSuccess: 'تم إضافة الشخصية بنجاح',
+    updateSuccess: 'تم تحديث الشخصية بنجاح',
     deleteSuccess: 'تم حذف الشخصية بنجاح',
     confirmDelete: 'هل أنت متأكد من حذف هذه الشخصية؟',
   },
@@ -174,6 +178,7 @@ export default {
     createSuccess: 'تم إنشاء حساب الجهاز بنجاح',
     selectCameraTitle: 'الكاميرا المرتبطة',
     deleteSuccess: 'تم حذف حساب الجهاز بنجاح',
+    deviceId: 'معرف الجهاز',
   },
   gate: {
     title: 'تأكيد البوابة',

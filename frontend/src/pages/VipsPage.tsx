@@ -12,7 +12,7 @@ import { VipsDialog } from '@/components/vip/VipsDialog';
 import { getVips } from '@/services/vip/query';
 import { deleteVip } from '@/services/vip/mutation';
 import { VipQueryKeys } from '@/services/vip/queryKeys';
-import { IVip } from '@/services/vip/types';
+import { VipItem } from '@/services/vip/types';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,36 +29,33 @@ export default function VipsPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<IVip | null>(null);
+  const [editing, setEditing] = useState<VipItem | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  const { data: vipsData = [], isLoading } = useQuery({
+  const { data: vips = [], isLoading } = useQuery({
     queryKey: VipQueryKeys.all(),
     queryFn: () => getVips(),
   });
-
-  const vips = vipsData as unknown as IVip[];
+  console.log(vips)
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteVip(id),
     onSuccess: () => {
-      toast.success(t('vips.deleteSuccess', 'VIP deleted successfully'));
+      toast.success(t('vips.deleteSuccess'));
       queryClient.invalidateQueries({ queryKey: VipQueryKeys.all() });
       setDeleting(null);
     },
     onError: (error: Error) => {
-      toast.error(error?.message || t('common.error', 'An error occurred'));
+      toast.error(error?.message || t('common.error'));
       setDeleting(null);
     }
   });
 
-  const filtered = vips.filter((v) => {
-    const vip = v as unknown as { name: string; plateNumbers?: string[]; plate?: string; plateNormalized?: string };
+  const filtered = vips.filter((vip) => {
+    const allPlates = vip.plates.map((p) => p.plateNumber)
     return (
       vip.name?.toLowerCase().includes(search.toLowerCase()) ||
-      vip.plateNumbers?.some((p) => p.toLowerCase().includes(search.toLowerCase())) ||
-      vip.plate?.toLowerCase().includes(search.toLowerCase()) ||
-      vip.plateNormalized?.toLowerCase().includes(search.toLowerCase())
+      allPlates.some((p) => p.toLowerCase().includes(search.toLowerCase()))
     );
   });
 
@@ -67,7 +64,7 @@ export default function VipsPage() {
     setDialogOpen(true);
   };
 
-  const openEdit = (vip: IVip) => {
+  const openEdit = (vip: VipItem) => {
     setEditing(vip);
     setDialogOpen(true);
   };
@@ -107,7 +104,7 @@ export default function VipsPage() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground border rounded-lg">
-            {t('common.noData', 'No VIPs found')}
+            {t('common.noData')}
           </div>
         ) : (
           <VipsTable vips={filtered} onEdit={openEdit} onDelete={handleDelete} />
@@ -124,13 +121,13 @@ export default function VipsPage() {
       <AlertDialog open={!!deleting} onOpenChange={(open) => !open && setDeleting(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('common.delete', 'Delete')}</AlertDialogTitle>
+            <AlertDialogTitle>{t('common.delete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('vips.confirmDelete', 'Are you sure you want to delete this VIP?')}
+              {t('vips.confirmDelete')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteMutation.isPending}>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
@@ -140,7 +137,7 @@ export default function VipsPage() {
               disabled={deleteMutation.isPending}
             >
               {deleteMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              {t('common.confirm', 'Confirm')}
+              {t('common.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

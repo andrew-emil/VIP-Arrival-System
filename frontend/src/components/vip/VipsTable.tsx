@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pencil, Trash2 } from 'lucide-react';
 import { ProtocolLevel } from '@/types';
-import { IVip } from '@/services/vip/types';
+import { VipItem } from '@/services/vip/types';
 
 interface VipsTableProps {
-  vips: IVip[];
-  onEdit: (vip: IVip) => void;
+  vips: VipItem[];
+  onEdit: (vip: VipItem) => void;
   onDelete: (id: string) => void;
 }
 
@@ -36,40 +36,39 @@ export function VipsTable({ vips, onEdit, onDelete }: VipsTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {vips.map((vip) => (
-            <TableRow key={vip.id}>
-              <TableCell className="font-medium">{vip.name}</TableCell>
-              <TableCell>{vip.company}</TableCell>
-              <TableCell>
-                <Badge variant="outline" className={protocolColors[vip.protocolLevel as ProtocolLevel] || protocolColors.D}>
-                  {vip.protocolLevel}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                {/* 
-                  Note: IVip from service currently doesn't reflect multiple plates clearly.
-                  Mapping it according to available fields. 
-                */}
-                <div className="flex flex-wrap gap-1">
-                  {(vip as unknown as { plateNumbers?: string[] }).plateNumbers?.map((p: string) => (
-                    <span key={p} className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">{p}</span>
-                  )) || (vip as unknown as { plate?: string }).plate && (
-                     <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">{(vip as unknown as { plate?: string }).plate}</span>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(vip)}>
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => onDelete(vip.id)}>
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
+          {vips.map((vip) => {
+            const allPlates = vip.plates.map((p) => p.plateNumber);
+            return (
+              <TableRow key={vip.id}>
+                <TableCell className="font-medium">{vip.name}</TableCell>
+                <TableCell>{vip.company}</TableCell>
+                <TableCell>
+                  <Badge variant="outline" className={protocolColors[vip.protocolLevel as ProtocolLevel] || protocolColors.D}>
+                    {vip.protocolLevel}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {allPlates.map((plate) => (
+                      <span key={plate} className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">
+                        {plate}
+                      </span>
+                    ))}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(vip)}>
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => onDelete(vip.id)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>

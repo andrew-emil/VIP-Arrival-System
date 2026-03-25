@@ -6,7 +6,7 @@ export async function getVips(plate?: string) {
         const { data } = await api.get<GetAllVipsResponse>("/vip", {
             params: { plate },
         });
-        return data.items;
+        return data;
     } catch (error) {
         throw error?.response?.data || error;
     }

@@ -15,13 +15,13 @@ import { toast } from 'sonner';
 
 import { createVip, updateVip } from '@/services/vip/mutation';
 import { VipQueryKeys } from '@/services/vip/queryKeys';
-import { IVip } from '@/services/vip/types';
+import { VipItem } from '@/services/vip/types';
 import { ProtocolLevel } from '@/types';
 
 interface VipsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  editing: IVip | null;
+  editing: VipItem | null;
   onClose: () => void;
 }
 
@@ -53,11 +53,14 @@ export function VipsDialog({ open, onOpenChange, editing, onClose }: VipsDialogP
   useEffect(() => {
     if (open) {
       if (editing) {
+        // Collect all plate numbers from the items structure
+        const allPlates = editing.plates.map((p) => p.plateNumber);
+
         form.reset({
           name: editing.name,
           company: editing.company || '',
           protocolLevel: (editing.protocolLevel as ProtocolLevel) || 'B',
-          plateNumbers: (editing as unknown as { plateNumbers?: string[] }).plateNumbers?.join(', ') || (editing as unknown as { plate?: string }).plate || '',
+          plateNumbers: allPlates.join(', '),
           notes: editing.notes || '',
         });
       } else {
@@ -73,41 +76,39 @@ export function VipsDialog({ open, onOpenChange, editing, onClose }: VipsDialogP
   }, [open, editing, form]);
 
   const createMutation = useMutation({
-    // We cast to unknown because the CreateVipDto in types.ts is minimal, 
-    // but the actual API likely supports more fields.
     mutationFn: (dto: Record<string, unknown>) => createVip(dto as unknown as Parameters<typeof createVip>[0]),
     onSuccess: () => {
-      toast.success(t('vips.createSuccess', 'VIP created successfully'));
+      toast.success(t('vips.createSuccess'));
       queryClient.invalidateQueries({ queryKey: VipQueryKeys.all() });
       onClose();
     },
     onError: (error: Error) => {
-      toast.error(error?.message || t('common.error', 'An error occurred'));
+      toast.error(error?.message || t('common.error'));
     }
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, dto }: { id: string; dto: Record<string, unknown> }) => updateVip(id, dto as unknown as Parameters<typeof updateVip>[1]),
+    mutationFn: ({ id, dto }: { id: string; dto: Record<string, unknown> }) =>
+      updateVip(id, dto as unknown as Parameters<typeof updateVip>[1]),
     onSuccess: () => {
-      toast.success(t('vips.updateSuccess', 'VIP updated successfully'));
+      toast.success(t('vips.updateSuccess'));
       queryClient.invalidateQueries({ queryKey: VipQueryKeys.all() });
       onClose();
     },
     onError: (error: Error) => {
-      toast.error(error?.message || t('common.error', 'An error occurred'));
+      toast.error(error?.message || t('common.error'));
     }
   });
 
   const onSubmit = (values: VipsFormValues) => {
     const plates = values.plateNumbers.split(',').map((p) => p.trim()).filter(Boolean);
-    
-    // Mapping form values to what the API expects (or what was used in the store)
+
     const payload = {
-      ...values,
+      name: values.name,
+      company: values.company,
+      protocolLevel: values.protocolLevel,
+      notes: values.notes,
       plateNumbers: plates,
-      // The API might expect 'plate' instead of 'plateNumbers' as a singular string 
-      // based on CreateVipDto. We provide both if needed, OR just stick to what was there.
-      plate: plates[0] || '', 
     };
 
     if (editing) {
@@ -166,7 +167,7 @@ export function VipsDialog({ open, onOpenChange, editing, onClose }: VipsDialogP
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {['A', 'B', 'C', 'D'].map((l) => (
+                      {(['A', 'B', 'C', 'D'] as ProtocolLevel[]).map((l) => (
                         <SelectItem key={l} value={l}>{l}</SelectItem>
                       ))}
                     </SelectContent>
@@ -182,7 +183,7 @@ export function VipsDialog({ open, onOpenChange, editing, onClose }: VipsDialogP
                 <FormItem>
                   <FormLabel>{t('vips.plateNumbers')}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="ABC 1234, DEF 5678" className="font-mono" />
+                    <Input {...field} placeholder={t('vips.plateNumbersPlaceholder')} className="font-mono" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -201,7 +202,7 @@ export function VipsDialog({ open, onOpenChange, editing, onClose }: VipsDialogP
                 </FormItem>
               )}
             />
-            
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>{t('common.cancel')}</Button>
               <Button type="submit" disabled={isPending}>
