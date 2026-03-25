@@ -1,10 +1,10 @@
-import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Pencil, Trash2 } from 'lucide-react';
+import { VipItem } from '@/services/vip';
 import { ProtocolLevel } from '@/types';
-import { VipItem } from '@/services/vip/types';
+import { Pencil, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface VipsTableProps {
   vips: VipItem[];

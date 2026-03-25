@@ -1,18 +1,9 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Loader2, Plus, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { DashboardLayout } from '@/layouts/DashboardLayout';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { VipsTable } from '@/components/vip/VipsTable';
-import { VipsDialog } from '@/components/vip/VipsDialog';
-import { getVips } from '@/services/vip/query';
-import { deleteVip } from '@/services/vip/mutation';
-import { VipQueryKeys } from '@/services/vip/queryKeys';
-import { VipItem } from '@/services/vip/types';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +14,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { VipsDialog } from '@/components/vip/VipsDialog';
+import { VipsTable } from '@/components/vip/VipsTable';
+import { DashboardLayout } from '@/layouts/DashboardLayout';
+import { deleteVip, getVips, VipItem, VipQueryKeys } from '@/services/vip';
 
 export default function VipsPage() {
   const { t } = useTranslation();

@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Outlet } from "react-router";
 import { requireRole } from "./loaders/role.loader";
 import { rootLoader } from "./loaders/root.loader";
 import AccountDevicePage from "./pages/AccountDevicePage";
@@ -22,6 +22,7 @@ export const router = createBrowserRouter([
     {
         path: "/",
         loader: rootLoader,
+        element: <Outlet />,
     },
     {
         path: "/dashboard",
