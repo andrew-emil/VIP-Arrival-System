@@ -23,8 +23,9 @@ const sessionMiddleware = session({
     cookie: {
         httpOnly: true,
         secure: true,
-        maxAge: 8 * 60 * 60 * 1000, // 8 hours
-        sameSite: 'none',
+        maxAge: 8 * 60 * 60 * 1000,
+        sameSite: 'lax',
+        domain: '.vas-system.com',
     },
 });
 
