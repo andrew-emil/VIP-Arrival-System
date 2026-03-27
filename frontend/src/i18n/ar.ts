@@ -214,6 +214,7 @@ export default {
     userMode: 'مستخدم',
     deviceMode: 'حارس البوابة',
     deviceId: 'معرف الجهاز',
+    error: 'بيانات الدخول غير صحيحة'
   },
   settings: {
     title: 'الإعدادات',

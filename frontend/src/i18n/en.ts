@@ -214,6 +214,7 @@ export default {
     userMode: 'User',
     deviceMode: 'Gate Guard',
     deviceId: 'Device ID',
+    error: 'Invalid Email or password'
   },
   settings: {
     title: 'Settings',

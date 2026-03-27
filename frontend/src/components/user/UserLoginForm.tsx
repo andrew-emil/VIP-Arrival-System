@@ -42,6 +42,7 @@ export function UserLoginForm() {
   const loginMutation = useMutation({
     mutationFn: login,
     onSuccess: (data) => {
+      console.log(data)
       loginStore({
         id: data.id,
         name: data.name,
@@ -59,7 +60,10 @@ export function UserLoginForm() {
       navigate(redirectMap[data.role] || '/');
     },
     onError: (error: Error) => {
-      toast.error(error?.message || t('common.error', 'An error occurred'));
+      toast.error(
+        error.message === 'Invalid Email or password' ?
+          t('login.error') :
+          error?.message || t('common.error', 'An error occurred'));
     }
   });
 

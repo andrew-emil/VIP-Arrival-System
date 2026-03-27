@@ -1,28 +1,40 @@
+import { lazy, Suspense } from "react";
 import { createBrowserRouter, Outlet } from "react-router";
+import { PageLoader } from "./components/PageLoader";
 import { requireRole } from "./loaders/role.loader";
 import { rootLoader } from "./loaders/root.loader";
-import AccountDevicePage from "./pages/AccountDevicePage";
-import CamerasPage from "./pages/CamerasPage";
-import EventsPage from "./pages/EventsPage";
-import GatePage from "./pages/GatePage";
-import LoginPage from "./pages/LoginPage";
-import ManagerMonitor from "./pages/ManagerMonitor";
-import NotFound from "./pages/NotFound";
-import OperationsDashboard from "./pages/OperationsDashboard";
-import SessionsPage from "./pages/SessionsPage";
-import SettingsPage from "./pages/SettingsPage";
-import UsersPage from "./pages/UsersPage";
-import VipsPage from "./pages/VipsPage";
+
+const AccountDevicePage = lazy(() => import("./pages/AccountDevicePage"));
+const CamerasPage = lazy(() => import("./pages/CamerasPage"));
+const EventsPage = lazy(() => import("./pages/EventsPage"));
+const GatePage = lazy(() => import("./pages/GatePage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const ManagerMonitor = lazy(() => import("./pages/ManagerMonitor"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const OperationsDashboard = lazy(() => import("./pages/OperationsDashboard"));
+const SessionsPage = lazy(() => import("./pages/SessionsPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const UsersPage = lazy(() => import("./pages/UsersPage"));
+const VipsPage = lazy(() => import("./pages/VipsPage"));
+
 
 export const router = createBrowserRouter([
     {
         path: "/login",
-        element: <LoginPage />,
+        element: (
+            <Suspense fallback={<PageLoader />}>
+                <LoginPage />
+            </Suspense>
+        ),
     },
     {
         path: "/",
         loader: rootLoader,
-        element: <Outlet />,
+        element: (
+            <Suspense fallback={<PageLoader />}>
+                <Outlet />
+            </Suspense>
+        ),
         children: [
             {
                 path: "dashboard",
@@ -78,6 +90,10 @@ export const router = createBrowserRouter([
     },
     {
         path: "*",
-        element: <NotFound />,
+        element: (
+            <Suspense fallback={<PageLoader />}>
+                <NotFound />
+            </Suspense>
+        ),
     },
 ]);
