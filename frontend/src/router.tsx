@@ -23,56 +23,58 @@ export const router = createBrowserRouter([
         path: "/",
         loader: rootLoader,
         element: <Outlet />,
-    },
-    {
-        path: "/dashboard",
-        loader: requireRole(['admin', 'operator']),
-        element: <OperationsDashboard />,
-    },
-    {
-        path: "/manager/monitor",
-        loader: requireRole(['manager', 'observer']),
-        element: <ManagerMonitor />,
-    },
-    {
-        path: "/vips",
-        loader: requireRole(['admin', 'operator']),
-        element: <VipsPage />,
-    },
-    {
-        path: "/events",
-        loader: requireRole(['admin']),
-        element: <EventsPage />,
-    },
-    {
-        path: "/cameras",
-        loader: requireRole(['admin']),
-        element: <CamerasPage />,
-    },
-    {
-        path: "/account-devices",
-        loader: requireRole(['admin']),
-        element: <AccountDevicePage />,
-    },
-    {
-        path: "/users",
-        loader: requireRole(['admin']),
-        element: <UsersPage />,
-    },
-    {
-        path: "/sessions",
-        loader: requireRole(['admin', 'operator']),
-        element: <SessionsPage />,
-    },
-    {
-        path: "/gate",
-        loader: requireRole(['gate_guard']),
-        element: <GatePage />,
-    },
-    {
-        path: "/settings",
-        loader: requireRole(['admin', 'operator', 'manager', 'observer', 'gate_guard']),
-        element: <SettingsPage />,
+        children: [
+            {
+                path: "dashboard",
+                loader: requireRole(['admin', 'operator']),
+                element: <OperationsDashboard />,
+            },
+            {
+                path: "manager/monitor",
+                loader: requireRole(['manager', 'observer']),
+                element: <ManagerMonitor />,
+            },
+            {
+                path: "vips",
+                loader: requireRole(['admin', 'operator']),
+                element: <VipsPage />,
+            },
+            {
+                path: "events",
+                loader: requireRole(['admin']),
+                element: <EventsPage />,
+            },
+            {
+                path: "cameras",
+                loader: requireRole(['admin']),
+                element: <CamerasPage />,
+            },
+            {
+                path: "account-devices",
+                loader: requireRole(['admin']),
+                element: <AccountDevicePage />,
+            },
+            {
+                path: "users",
+                loader: requireRole(['admin']),
+                element: <UsersPage />,
+            },
+            {
+                path: "sessions",
+                loader: requireRole(['admin', 'operator']),
+                element: <SessionsPage />,
+            },
+            {
+                path: "gate",
+                loader: requireRole(['gate_guard']),
+                element: <GatePage />,
+            },
+            {
+                path: "settings",
+                loader: requireRole(['admin', 'operator', 'manager', 'observer', 'gate_guard']),
+                element: <SettingsPage />,
+            },
+        ],
     },
     {
         path: "*",
